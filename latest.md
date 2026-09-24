@@ -1,35 +1,23 @@
 ---
 type: mco-daily
-date: 2026-09-23
-generated_at: 2026-09-23T08:02:00+02:00
+date: 2026-09-24
+generated_at: 2026-09-24T08:02:00+02:00
 status: warning
-
 rocky_kernel_latest: 5.14.0-687.49.1.el9_8
-
 proxmox_major: 9.2
 proxmox_pve_manager_latest: 9.2.20
 proxmox_kernel_latest: 7.0.14-19-pve
-
 critical_cve: 0
 important_cve: 4
 ---
 
-# MCO Daily — 23 septembre 2026
+# MCO Daily — 24 septembre 2026
 
 ## Résumé exécutif
 
-🟠 **Vigilance kernel côté Rocky/RHEL ; nouveau kernel Proxmox à intégrer au suivi.**
-
-- Rocky Linux 9 : dernier kernel observé `5.14.0-687.49.1.el9_8`, publié le 18 septembre 2026.
-- Red Hat : le bulletin **RHSB-2026-011** reste en statut **Ongoing** avec quatre vulnérabilités réseau kernel classées **Important**.
-- Proxmox VE : `pve-manager 9.2.20` reste la dernière version observée.
-- Kernel Proxmox : `proxmox-kernel-7.0.14-19-pve` est désormais le dernier kernel 7.0.14 observé dans les dépôts consultés.
-
----
+🟠 **Pas de nouvelle release significative depuis hier.** Le risque prioritaire reste RHSB-2026-011 : quatre failles réseau kernel classées **Important** par Red Hat, avec correctifs toujours en cours de publication. Rocky 9 reste sur `5.14.0-687.49.1.el9_8`. Côté Proxmox, `7.0.14-19-pve` reste le kernel à cibler et `pve-manager 9.2.20` la dernière version observée.
 
 ## Rocky Linux / RHEL 9
-
-### Kernel disponible
 
 Dernier kernel Rocky Linux 9 BaseOS x86_64 observé :
 
@@ -37,79 +25,51 @@ Dernier kernel Rocky Linux 9 BaseOS x86_64 observé :
 5.14.0-687.49.1.el9_8
 ```
 
-Date du paquet : **18 septembre 2026**.
+Paquet daté du **18 septembre 2026**. Aucun kernel Rocky 9 plus récent n'est visible ce matin dans le dépôt officiel BaseOS x86_64.
 
-Aucun kernel plus récent n'est visible ce matin dans le dépôt officiel Rocky Linux 9 BaseOS x86_64.
+Le bulletin **RHSB-2026-011**, publié le 19 septembre et mis à jour le 21 septembre, reste en statut **Ongoing**. Red Hat indique accélérer la publication des correctifs.
 
-Commandes de contrôle :
+## CVE kernel prioritaires
+
+| Criticité | CVE | Impact / vecteur | Prérequis | Correctif | Action MCO |
+|---|---|---|---|---|---|
+| 🟠 Important | CVE-2026-74469 — DiagSpill | Corruption mémoire SCTP ; local → root ; DoS distant possible | SCTP + `sctp_diag`; pas de user namespace requis | En cours de publication | Inventorier SCTP en priorité ; désactiver si inutilisé |
+| 🟠 Important | CVE-2026-80844 — DirtyAH6 | OOB mémoire AH6/XFRM ; local → root | AH6/XFRM + unprivileged user namespaces | En cours de publication | Vérifier IPv6 AH/XFRM ; limiter les namespaces si compatible |
+| 🟠 Important | CVE-2026-81000 — TUNderflow | Heap overflow TUN/TAP ; local → root | TUN/TAP + unprivileged user namespaces | En cours de publication | Conserver `tun` si VPN/conteneurs/virtualisation en dépendent |
+| 🟠 Important | CVE-2026-68121 — PPPoEject | Use-after-free PPPoE ; local → root | PPPoE + unprivileged user namespaces | En cours de publication | Désactiver PPPoE uniquement si inutilisé |
+
+**DiagSpill reste la priorité** : son exploitation locale ne nécessite pas les unprivileged user namespaces, contrairement aux trois autres failles du bulletin.
+
+Contrôle :
 
 ```bash
 uname -r
 dnf check-update kernel
-dnf repoquery --latest-limit=3 kernel
-```
-
-⚠️ Ne pas considérer automatiquement `5.14.0-687.49.1.el9_8` comme corrigeant les quatre CVE de RHSB-2026-011 : le bulletin Red Hat est toujours indiqué comme **Ongoing** et Red Hat recommande de passer à un kernel corrigé dès sa publication.
-
----
-
-## Vulnérabilités kernel prioritaires Rocky/RHEL
-
-Bulletin suivi : **RHSB-2026-011 — Network Stack Privilege Escalations**.
-
-| Criticité | CVE | Impact / vecteur | Prérequis principaux | Correctif | Action MCO |
-|---|---|---|---|---|---|
-| 🟠 Important | CVE-2026-74469 — DiagSpill | Élévation locale vers root ; DoS distant possible dans certaines configurations | SCTP + `sctp_diag`; pas besoin de user namespace non privilégié | En cours de publication | Priorité haute : inventorier SCTP et désactiver si inutile |
-| 🟠 Important | CVE-2026-80844 — DirtyAH6 | Corruption mémoire AH6/XFRM ; élévation locale vers root | AH6/XFRM + unprivileged user namespaces pour le scénario local décrit | En cours de publication | Vérifier les usages IPsec/AH ; réduire l'exposition des namespaces si possible |
-| 🟠 Important | CVE-2026-81000 — TUNderflow | Heap overflow dans TUN/TAP ; élévation locale vers root | TUN/TAP + unprivileged user namespaces | En cours de publication | Ne pas désactiver `tun` sans vérifier VPN/conteneurs/virtualisation |
-| 🟠 Important | CVE-2026-68121 — PPPoEject | Use-after-free PPPoE ; élévation locale vers root | PPPoE + unprivileged user namespaces | En cours de publication | Désactiver PPPoE seulement si réellement inutilisé |
-
-### Point le plus sensible
-
-**CVE-2026-74469 / DiagSpill** reste la vulnérabilité la plus préoccupante du lot pour un serveur classique car le scénario local décrit par Red Hat ne dépend pas des unprivileged user namespaces.
-
-Inventaire recommandé :
-
-```bash
 lsmod | egrep '^(sctp|sctp_diag|ah6|tun|pppoe)\b'
 sysctl user.max_user_namespaces
 ```
 
-La restriction des unprivileged user namespaces réduit l'exposition aux trois autres vulnérabilités, mais **ne mitige pas DiagSpill**.
-
----
+Ne pas considérer `5.14.0-687.49.1.el9_8` comme le correctif de RHSB-2026-011 tant qu'un advisory Red Hat/Rocky ne l'atteste pas explicitement.
 
 ## Proxmox VE
 
-### Packages / fonctionnalités
+Pas de nouvelle version `pve-manager` significative depuis le brief précédent : la dernière observée reste :
 
-État observé :
+```text
+pve-manager 9.2.20
+```
 
-| Élément | Version |
-|---|---|
-| Proxmox VE | 9.2 |
-| `pve-manager` | `9.2.20` |
-| Kernel Proxmox | `7.0.14-19-pve` |
-
-Aucun changelog `pve-manager` plus récent que `9.2.20` n'est visible dans le dépôt no-subscription consulté ce matin.
-
-### Kernel Proxmox spécifique
-
-Le dernier kernel Proxmox 7.0.14 observé est :
+Le dernier kernel Proxmox 7.0.14 observé reste :
 
 ```text
 proxmox-kernel-7.0.14-19-pve
 ```
 
-La version signée correspondante est également publiée :
+Le changelog signé `7.0.14+19` est publié dans les métadonnées officielles Proxmox depuis le **21 septembre 2026**. Aucun build plus récent n'est visible ce matin dans la source officielle consultée.
 
-```text
-proxmox-kernel-7.0.14-19-pve-signed
-```
+Je n'attribue pas de CVE précise au build `-19` sans correspondance suffisamment explicite dans les sources officielles.
 
-Les paquets sont datés du **18 septembre 2026** sur les miroirs consultés et leurs changelogs sont présents dans les métadonnées officielles Proxmox depuis le **21 septembre**.
-
-Le suivi MCO doit donc désormais comparer les nœuds à cette version :
+Contrôle des nœuds :
 
 ```bash
 uname -r
@@ -118,45 +78,28 @@ apt update
 apt list --upgradable 2>/dev/null | egrep 'proxmox-kernel|pve-manager'
 ```
 
-### Action MCO Proxmox
-
-🟡 **Action normale :** vérifier quels nœuds sont encore sur `7.0.14-17-pve`, `7.0.14-18-pve` ou antérieur et planifier le passage vers `7.0.14-19-pve` selon votre fenêtre de maintenance.
-
-Un reboot est nécessaire pour démarrer effectivement sur le nouveau kernel après installation.
-
-Je ne classe pas aujourd'hui de CVE précise comme « corrigée par -19 » tant que le lien entre ce build Proxmox et ces CVE n'est pas suffisamment attesté par les sources consultées. Le rapport privilégie la certitude plutôt qu'une attribution spéculative.
-
----
+Un reboot est nécessaire après installation d'un nouveau kernel pour réellement l'activer.
 
 ## Actions du jour
 
 ### Priorité haute
 
-- [ ] Vérifier la présence de `sctp` / `sctp_diag` sur les Rocky/RHEL 9.
-- [ ] Surveiller l'arrivée de l'advisory/kernel Red Hat corrigeant explicitement RHSB-2026-011.
-- [ ] Identifier les hôtes Rocky utilisant des unprivileged user namespaces.
+- [ ] Vérifier `sctp` / `sctp_diag` sur les Rocky/RHEL 9 et désactiver ces modules lorsqu'ils sont inutiles.
+- [ ] Continuer à surveiller la publication du kernel/advisory corrigeant explicitement RHSB-2026-011.
 
 ### Priorité normale
 
-- [ ] Vérifier les Rocky encore sous un kernel antérieur à `5.14.0-687.49.1.el9_8`.
-- [ ] Vérifier les nœuds Proxmox encore sous `7.0.14-18-pve` ou antérieur.
-- [ ] Installer `7.0.14-19-pve` lors de la prochaine fenêtre adaptée, puis redémarrer le nœud pour l'activer.
-- [ ] Aucun changement `pve-manager` urgent identifié.
-
----
+- [ ] Vérifier les Rocky sous un kernel antérieur à `5.14.0-687.49.1.el9_8`.
+- [ ] Vérifier les Proxmox encore sous `7.0.14-18-pve` ou antérieur et planifier `7.0.14-19-pve` avec reboot.
+- [ ] Pas d'autre action Proxmox urgente identifiée aujourd'hui.
 
 ## Sources
 
-- Red Hat — RHSB-2026-011
-  https://access.redhat.com/security/vulnerabilities/RHSB-2026-011
+- Red Hat — RHSB-2026-011 : https://access.redhat.com/security/vulnerabilities/RHSB-2026-011
+- Red Hat — CVE-2026-74469 : https://access.redhat.com/security/cve/cve-2026-74469
+- Red Hat — CVE-2026-80844 : https://access.redhat.com/security/cve/cve-2026-80844
+- Rocky Linux 9 BaseOS x86_64 : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
+- Proxmox — pve-manager : https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-manager/
+- Proxmox — kernel 7.0 signé : https://metadata.cdn.proxmox.com/enterprise/changelogs/pve/dists/trixie/pve-enterprise/p/proxmox-kernel-signed-7.0/
 
-- Rocky Linux 9 BaseOS x86_64 — packages kernel
-  https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
-
-- Proxmox — changelogs pve-manager
-  https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-manager/
-
-- Proxmox — changelogs kernel 7.0 / packages signés
-  https://metadata.cdn.proxmox.com/enterprise/changelogs/pve/dists/trixie/pve-enterprise/p/proxmox-kernel-signed-7.0/
-
-> Rapport orienté exploitation : seules les informations pouvant entraîner une action MCO ou modifier le niveau de risque sont mises en avant.
+> Rapport volontairement concis : aucune nouvelle release Rocky/Proxmox ni nouvelle vulnérabilité prioritaire n'a été identifiée depuis le brief précédent.
