@@ -1,9 +1,10 @@
 ---
 type: mco-daily
-date: 2026-09-24
-generated_at: 2026-09-24T09:21:00+02:00
+date: 2026-09-25
+generated_at: 2026-09-25T08:10:00+02:00
 status: critical
-rocky_kernel_latest: 5.14.0-687.49.1.el9_8
+rocky_kernel_latest: 5.14.0-687.50.1.el9_8
+rocky_security_advisory: RHSA-2026:70459
 proxmox_major: 9.2
 proxmox_pve_manager_latest: 9.2.20
 proxmox_kernel_latest: 7.0.14-19-pve
@@ -11,106 +12,26 @@ gitlab_latest_security_release: 19.4.1
 gitlab_supported_security_fixes: [19.4.1, 19.3.3, 19.2.7]
 critical_cve: 2
 high_cve: 2
-important_kernel_cve: 4
+important_kernel_advisory: true
 ---
 
-# MCO Daily — 24 septembre 2026
+# MCO Daily — 25 septembre 2026
 
 ## Résumé exécutif
 
-🔴 **Action urgente GitLab Self-Managed.** GitLab a publié le 23 septembre les versions **19.4.1, 19.3.3 et 19.2.7** avec deux vulnérabilités **RCE serveur CVSS 9.9** dans le traitement d'expressions régulières CI/CD. Toute instance affectée doit être mise à jour immédiatement.
+🔴 **GitLab reste prioritaire** : aucune nouvelle Security Patch Release n'a remplacé les correctifs du 23 septembre. Les branches corrigées restent `19.4.1`, `19.3.3` et `19.2.7`, avec deux RCE CI/CD CVSS 9.9.
 
-🟠 Côté Rocky/RHEL, **RHSB-2026-011** reste en cours avec quatre vulnérabilités kernel réseau classées Important. Aucun kernel Rocky plus récent que `5.14.0-687.49.1.el9_8` n'est visible.
+🟠 **Nouveau kernel Rocky/RHEL 9 : `5.14.0-687.50.1.el9_8`**. Il correspond à **RHSA-2026:70459**, classé **Important**, et corrige 13 CVE. Ce kernel ne corrige pas les quatre CVE suivies dans **RHSB-2026-011**, qui reste en statut Ongoing.
 
-🟢 Côté Proxmox, pas de nouvelle release critique : `pve-manager 9.2.20` et `7.0.14-19-pve` restent les versions observées.
+🟢 **Proxmox stable** : `pve-manager 9.2.20` et kernel `7.0.14-19-pve` restent les dernières versions observées.
 
 ---
 
 # GitLab Self-Managed
 
-## Critical Patch Release du 23 septembre 2026
+## Critical Patch Release toujours en vigueur
 
-Versions corrigées : `19.4.1`, `19.3.3`, `19.2.7`.
-
-GitLab recommande explicitement la mise à jour immédiate de toutes les installations Self-Managed affectées.
-
-### 🔴 Critique — CVE-2026-89078
-
-- **Type :** Double Free dans le parseur d'expressions régulières
-- **CVSS :** 9.9
-- **Éditions :** CE / EE
-- **Impact :** exécution de code arbitraire sur le serveur GitLab
-- **Vecteur :** réseau, complexité faible, authentification requise, faibles privilèges suffisants, aucune interaction utilisateur
-- **Fonction concernée :** expression régulière spécialement construite dans une configuration CI/CD
-- **Versions affectées :** `19.2.x < 19.2.7`, `19.3.x < 19.3.3`, `19.4.x < 19.4.1`
-- **Versions corrigées :** `19.2.7`, `19.3.3`, `19.4.1`
-- **Action MCO :** 🔴 mise à jour immédiate
-
-### 🔴 Critique — CVE-2026-93577
-
-- **Type :** Integer Overflow dans le compilateur d'expressions régulières
-- **CVSS :** 9.9
-- **Éditions :** CE / EE
-- **Impact :** exécution de code arbitraire sur le serveur GitLab
-- **Vecteur :** réseau, complexité faible, authentification requise, faibles privilèges suffisants, aucune interaction utilisateur
-- **Fonction concernée :** expression régulière spécialement construite dans une configuration CI/CD
-- **Versions affectées :** `19.2.x < 19.2.7`, `19.3.x < 19.3.3`, `19.4.x < 19.4.1`
-- **Versions corrigées :** `19.2.7`, `19.3.3`, `19.4.1`
-- **Action MCO :** 🔴 mise à jour immédiate
-
-### 🟠 Haute — CVE-2026-84739
-
-- **Type :** XSS dans le visualiseur de diff de Merge Request
-- **CVSS :** 8.7
-- **Éditions :** CE / EE
-- **Impact :** JavaScript arbitraire dans la session navigateur d'un autre utilisateur
-- **Prérequis :** attaquant authentifié ; interaction de la victime requise ; affichage d'un diff de MR contenant des composants de chemin spécialement construits
-- **Versions affectées :** `13.11` jusqu'à `< 19.2.7`, `19.3.x < 19.3.3`, `19.4.x < 19.4.1`
-- **Action MCO :** mise à jour immédiate
-
-### 🟠 Haute — CVE-2026-92470
-
-- **Type :** Missing Authorization dans Duo AI Job Troubleshooting
-- **CVSS :** 7.7
-- **Édition :** EE
-- **Impact :** lecture de valeurs sensibles de variables CI/CD présentes dans des traces de jobs en mode debug
-- **Prérequis :** utilisateur authentifié ; fonctionnalité Duo AI concernée ; traces debug exposant des variables
-- **Versions affectées :** `18.7` jusqu'à `< 19.2.7`, `19.3.x < 19.3.3`, `19.4.x < 19.4.1`
-- **Action MCO :** mise à jour immédiate, particulièrement si Duo et des secrets CI/CD sont utilisés
-
-## Autres correctifs GitLab à noter
-
-| CVE | CVSS | Sujet | Risque |
-|---|---:|---|---|
-| CVE-2026-92874 | 5.4 | Scope MCP API | token MCP permettant des actions au-delà du périmètre prévu |
-| CVE-2026-92530 | 4.3 | Direct Transfer user mapping | usurpation d'auteur de Merge Request |
-| CVE-2026-8937 | 4.3 | Epic Issues REST API | lecture de contenus privés |
-| CVE-2026-92529 | 4.3 | Duo Workflow governance | contournement de politiques AI |
-| CVE-2026-10518 | 4.3 | GraphQL memberRoles | lecture de politiques de sécurité privées |
-| CVE-2026-4523 | 3.7 | GraphQL CI job trace API | **lecture non authentifiée de traces CI/CD contenant potentiellement des variables sensibles** |
-| CVE-2026-92628 | 3.1 | MCP `gitlab_search` race condition | résultats retournés sous un mauvais contexte utilisateur |
-
-### Points particulièrement sensibles
-
-- **RCE :** CVE-2026-89078 et CVE-2026-93577.
-- **CI/CD / secrets :** CVE-2026-92470 et CVE-2026-4523.
-- **Sans authentification :** CVE-2026-4523 peut exposer des traces CI/CD ; complexité d'exploitation élevée.
-- **MCP / tokens :** CVE-2026-92874 touche l'application des scopes de tokens MCP.
-
-### Impact de l'upgrade
-
-- **Mono-nœud :** interruption pendant l'upgrade pendant les migrations requises.
-- **Multi-nœuds :** zéro interruption possible avec la procédure zero-downtime GitLab.
-- Des post-deploy migrations sont incluses notamment dans `19.3.3` et `19.2.7`.
-
-Vérification :
-
-```bash
-gitlab-rake gitlab:env:info | grep 'GitLab version'
-rpm -qa | grep gitlab
-```
-
-**Cible minimale :**
+Versions corrigées actuellement maintenues :
 
 ```text
 19.4.x -> 19.4.1
@@ -118,45 +39,154 @@ rpm -qa | grep gitlab
 19.2.x -> 19.2.7
 ```
 
+GitLab recommande la mise à jour immédiate des installations Self-Managed affectées.
+
+### 🔴 Critique — CVE-2026-89078
+
+- **CVSS :** 9.9
+- **Type :** double free dans le parseur d'expressions régulières
+- **Impact :** RCE sur le serveur GitLab
+- **Vecteur :** réseau
+- **Authentification :** requise
+- **Privilèges :** faibles privilèges suffisants
+- **Interaction utilisateur :** aucune
+- **Fonction concernée :** configuration CI/CD avec expression régulière spécialement construite
+- **Affecté :** `19.2 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
+- **Corrigé :** `19.2.7`, `19.3.3`, `19.4.1`
+- **Action :** 🔴 mise à jour immédiate
+
+### 🔴 Critique — CVE-2026-93577
+
+- **CVSS :** 9.9
+- **Type :** integer overflow dans le compilateur d'expressions régulières
+- **Impact :** RCE sur le serveur GitLab
+- **Vecteur :** réseau
+- **Authentification :** requise
+- **Privilèges :** faibles privilèges suffisants
+- **Interaction utilisateur :** aucune
+- **Fonction concernée :** configuration CI/CD avec expression régulière spécialement construite
+- **Affecté :** `19.2 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
+- **Corrigé :** `19.2.7`, `19.3.3`, `19.4.1`
+- **Action :** 🔴 mise à jour immédiate
+
+### 🟠 Haute — CVE-2026-84739
+
+- **CVSS :** 8.7
+- **Type :** XSS dans le visualiseur de diff de Merge Request
+- **Impact :** exécution de JavaScript dans la session d'un autre utilisateur
+- **Authentification :** requise côté attaquant
+- **Interaction utilisateur :** requise côté victime
+- **Affecté :** `13.11 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
+- **Action :** mise à jour immédiate
+
+### 🟠 Haute — CVE-2026-92470
+
+- **CVSS :** 7.7
+- **Édition :** EE
+- **Type :** missing authorization dans Duo AI Job Troubleshooting
+- **Impact :** exposition de variables CI/CD sensibles dans des traces debug
+- **Authentification :** requise
+- **Interaction utilisateur :** aucune
+- **Fonction concernée :** Duo AI + traces de jobs en mode debug
+- **Affecté :** `18.7 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
+- **Action :** mise à jour immédiate
+
+## Autres points de sécurité GitLab
+
+| CVE | CVSS | Risque notable |
+|---|---:|---|
+| CVE-2026-92874 | 5.4 | dépassement du scope d'un token MCP |
+| CVE-2026-92530 | 4.3 | spoof d'auteur via Direct Transfer |
+| CVE-2026-8937 | 4.3 | lecture de contenus privés via Epic Issues REST API |
+| CVE-2026-92529 | 4.3 | contournement de gouvernance Duo Workflow |
+| CVE-2026-10518 | 4.3 | lecture de politiques de sécurité privées |
+| CVE-2026-4523 | 3.7 | **lecture non authentifiée de traces CI/CD contenant potentiellement des variables sensibles** |
+| CVE-2026-92628 | 3.1 | contexte utilisateur incorrect dans `gitlab_search` MCP |
+
+### Signaux à retenir
+
+- **RCE :** CVE-2026-89078, CVE-2026-93577
+- **CI/CD :** CVE-2026-89078, CVE-2026-93577, CVE-2026-92470, CVE-2026-4523
+- **Secrets/tokens :** CVE-2026-92470, CVE-2026-4523, CVE-2026-92874
+- **Sans authentification :** CVE-2026-4523
+- **Auth bypass total :** aucun nouveau cas critique identifié dans la release suivie
+
 ---
 
 # Rocky Linux / RHEL 9
 
-Dernier kernel Rocky Linux 9 BaseOS x86_64 observé :
+## Nouveau kernel de sécurité
+
+Le dépôt Rocky Linux 9 BaseOS x86_64 contient désormais :
 
 ```text
-5.14.0-687.49.1.el9_8
+5.14.0-687.50.1.el9_8
 ```
 
-Le paquet est daté du **18 septembre 2026**. Aucun kernel Rocky 9 plus récent n'est visible ce matin dans le dépôt officiel consulté.
+Paquet daté du **24 septembre 2026**.
 
-Le bulletin **RHSB-2026-011** reste en statut **Ongoing**.
+Ce build correspond à **RHSA-2026:70459**, advisory Red Hat classé **Important**, publié le 23 septembre, avec 13 CVE corrigées.
 
-## Vulnérabilités kernel prioritaires
+### CVE corrigées par RHSA-2026:70459
 
-| Criticité | CVE | Impact | Prérequis | Correctif |
-|---|---|---|---|---|
-| 🟠 Important | CVE-2026-74469 — DiagSpill | local → root ; DoS distant possible | SCTP + `sctp_diag`; pas de user namespace requis | en cours de publication |
-| 🟠 Important | CVE-2026-80844 — DirtyAH6 | corruption mémoire ; local → root | AH6/XFRM + unprivileged user namespaces | en cours de publication |
-| 🟠 Important | CVE-2026-81000 — TUNderflow | heap overflow ; local → root | TUN/TAP + unprivileged user namespaces | en cours de publication |
-| 🟠 Important | CVE-2026-68121 — PPPoEject | use-after-free ; local → root | PPPoE + unprivileged user namespaces | en cours de publication |
+```text
+CVE-2025-39964
+CVE-2026-45894
+CVE-2026-45959
+CVE-2026-53062
+CVE-2026-63823
+CVE-2026-68155
+CVE-2026-68156
+CVE-2026-68157
+CVE-2026-68188
+CVE-2026-68293
+CVE-2026-68391
+CVE-2026-72072
+CVE-2026-74518
+```
 
-**DiagSpill reste prioritaire** car son scénario local ne nécessite pas les unprivileged user namespaces.
+### Classement MCO
+
+| Niveau | CVE / composant | Impact / vecteur | Action |
+|---|---|---|---|
+| 🟠 Important | RHSA-2026:70459 — ensemble des 13 CVE | advisory kernel RHEL 9 classé Important | déployer `687.50.1` et redémarrer |
+| 🟠 CVSS 7.3 Red Hat | CVE-2025-39964 — AF_ALG crypto | local, faibles privilèges, corruption d'état / DoS / intégrité | patcher ; pas de mitigation Red Hat satisfaisante |
+| 🟡 CVSS 7.0 Red Hat | CVE-2026-53062 — dm-cache SMQ | local, complexité élevée, data race / corruption / DoS | patcher si device-mapper cache utilisé |
+| 🟡 CVSS 7.0 Red Hat | CVE-2026-68156 — libceph | contexte Ceph client, use-after-free, crash / possible élévation | patcher ; désactiver module `ceph` si inutilisé |
+| 🟡 CVSS 7.0 Red Hat | CVE-2026-68157 — libceph | CRUSH map malformée, crash / DoS | patcher, priorité renforcée sur clients Ceph |
+| 🟡 CVSS 7.0 Red Hat | CVE-2026-68293 — mlx5 | buffer overflow pilote Mellanox, crash / DoS | patcher sur hôtes mlx5 |
+| 🟡 CVSS 7.0 Red Hat | CVE-2026-68391 — Bluetooth | use-after-free local, crash / possible code execution | faible exposition serveur si Bluetooth absent |
+| 🟡 CVSS 7.0 Red Hat | CVE-2026-72072 — MACsec/mlx5e | local, UAF, crash / DoS | priorité si MACsec offload utilisé |
+
+Les autres CVE du même advisory restent couvertes par la mise à jour `687.50.1`; aucune n'a été identifiée ce matin comme nécessitant une action distincte supérieure à l'advisory global Important.
+
+### Attention : RHSB-2026-011 reste distinct
+
+Le nouveau kernel `687.50.1` **ne liste pas** les quatre CVE suivantes dans RHSA-2026:70459 :
+
+- CVE-2026-74469 — DiagSpill
+- CVE-2026-80844 — DirtyAH6
+- CVE-2026-81000 — TUNderflow
+- CVE-2026-68121 — PPPoEject
+
+Red Hat continue d'afficher **RHSB-2026-011** comme **Ongoing**. Il ne faut donc pas considérer `687.50.1` comme le correctif de ce bulletin.
+
+Contrôle :
 
 ```bash
 uname -r
 dnf check-update kernel
-lsmod | egrep '^(sctp|sctp_diag|ah6|tun|pppoe)\b'
-sysctl user.max_user_namespaces
+dnf repoquery --latest-limit=3 kernel
+lsmod | egrep '^(sctp|sctp_diag|ah6|tun|pppoe|ceph)\b'
 ```
 
-Ne pas considérer `5.14.0-687.49.1.el9_8` comme corrigeant RHSB-2026-011 tant qu'un advisory Red Hat/Rocky ne l'atteste pas explicitement.
+**Action MCO Rocky :** installer `5.14.0-687.50.1.el9_8` selon la fenêtre de maintenance et prévoir un reboot, tout en maintenant la surveillance spécifique de RHSB-2026-011.
 
 ---
 
 # Proxmox VE
 
-État observé :
+État observé ce matin :
 
 ```text
 Proxmox VE        9.2
@@ -164,9 +194,17 @@ pve-manager       9.2.20
 kernel cible      7.0.14-19-pve
 ```
 
-Aucun `pve-manager` plus récent que `9.2.20` n'est visible dans le dépôt no-subscription consulté.
+Aucun `pve-manager` plus récent que `9.2.20` n'est visible dans le dépôt no-subscription officiel consulté.
 
-Le dernier changelog signé kernel 7.0 observé est `proxmox-kernel-signed-7.0_7.0.14+19`, publié dans les métadonnées officielles Proxmox le **21 septembre 2026**. Aucun build kernel plus récent n'est visible dans cette source ce matin.
+Le dernier changelog kernel signé 7.0 reste :
+
+```text
+proxmox-kernel-signed-7.0_7.0.14+19
+```
+
+Aucun build `+20` ou supérieur n'est visible dans les métadonnées officielles Proxmox consultées ce matin.
+
+Contrôle :
 
 ```bash
 uname -r
@@ -175,7 +213,7 @@ apt update
 apt list --upgradable 2>/dev/null | egrep 'proxmox-kernel|pve-manager'
 ```
 
-Un reboot est nécessaire pour activer un nouveau kernel après installation.
+**Action MCO Proxmox :** pas de nouvelle urgence aujourd'hui ; poursuivre le passage vers `7.0.14-19-pve` sur les nœuds encore en version antérieure, avec reboot pour activation.
 
 ---
 
@@ -183,19 +221,19 @@ Un reboot est nécessaire pour activer un nouveau kernel après installation.
 
 ## 🔴 Urgent
 
-- [ ] **Mettre à jour immédiatement les GitLab Self-Managed affectés** vers `19.4.1`, `19.3.3` ou `19.2.7` selon la branche.
-- [ ] Prioriser les instances GitLab exposées à Internet et celles où des utilisateurs non administrateurs peuvent modifier des configurations CI/CD.
-- [ ] Vérifier l'exposition des secrets CI/CD et l'usage de Duo AI sur EE.
+- [ ] Mettre à jour tout GitLab Self-Managed encore sous `19.3.2` vers **`19.3.3` minimum** (ou `19.4.1` si la montée de branche est prévue).
+- [ ] Prioriser les GitLab exposés à Internet et les instances où des développeurs peuvent modifier la configuration CI/CD.
+- [ ] Vérifier l'exposition de secrets CI/CD et Duo AI sur EE.
 
 ## 🟠 Haute priorité
 
-- [ ] Vérifier `sctp` / `sctp_diag` sur Rocky/RHEL 9.
-- [ ] Continuer à surveiller la publication du correctif Red Hat pour RHSB-2026-011.
+- [ ] Déployer le nouveau kernel Rocky `5.14.0-687.50.1.el9_8` issu de RHSA-2026:70459.
+- [ ] Planifier le reboot des Rocky après installation.
+- [ ] Continuer à surveiller séparément RHSB-2026-011.
 
 ## 🟡 Normale
 
-- [ ] Vérifier les Rocky sous un kernel antérieur à `5.14.0-687.49.1.el9_8`.
-- [ ] Vérifier les Proxmox encore sous `7.0.14-18-pve` ou antérieur et planifier le passage à `7.0.14-19-pve`.
+- [ ] Vérifier les Proxmox sous `7.0.14-18-pve` ou antérieur et planifier `7.0.14-19-pve`.
 
 ---
 
@@ -203,6 +241,12 @@ Un reboot est nécessaire pour activer un nouveau kernel après installation.
 
 - GitLab — Critical Patch Release 19.4.1, 19.3.3, 19.2.7
   https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/
+
+- GitLab — Release and maintenance policy
+  https://docs.gitlab.com/policy/maintenance/
+
+- Red Hat — RHSA-2026:70459 / Security Data
+  https://access.redhat.com/hydra/rest/securitydata/csaf
 
 - Red Hat — RHSB-2026-011
   https://access.redhat.com/security/vulnerabilities/RHSB-2026-011
@@ -216,4 +260,4 @@ Un reboot est nécessaire pour activer un nouveau kernel après installation.
 - Proxmox — kernel 7.0 signé
   https://metadata.cdn.proxmox.com/enterprise/changelogs/pve/dists/trixie/pve-enterprise/p/proxmox-kernel-signed-7.0/
 
-> Rapport orienté exploitation : les éléments sont priorisés selon leur impact réel sur un parc Rocky Linux, Proxmox et GitLab Self-Managed.
+> Rapport orienté exploitation : seuls les changements susceptibles de modifier le niveau de risque ou d'entraîner une action MCO sont mis en avant.
