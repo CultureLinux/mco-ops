@@ -1,29 +1,34 @@
 ---
 type: mco-daily
-date: 2026-09-25
-generated_at: 2026-09-25T08:10:00+02:00
+date: 2026-09-26
+generated_at: 2026-09-26T14:43:00+02:00
 status: critical
-rocky_kernel_latest: 5.14.0-687.50.1.el9_8
-rocky_security_advisory: RHSA-2026:70459
+
+rocky_kernel_latest: 5.14.0-687.51.1.el9_8
+rocky_security_advisory: RHSA-2026:71232
+
 proxmox_major: 9.2
 proxmox_pve_manager_latest: 9.2.20
-proxmox_kernel_latest: 7.0.14-19-pve
+proxmox_kernel_production: 7.0.14-19-pve
+proxmox_kernel_test_seen: 7.0.14-20-pve
+
 gitlab_latest_security_release: 19.4.1
 gitlab_supported_security_fixes: [19.4.1, 19.3.3, 19.2.7]
+
 critical_cve: 2
 high_cve: 2
 important_kernel_advisory: true
 ---
 
-# MCO Daily — 25 septembre 2026
+# MCO Daily — 26 septembre 2026
 
 ## Résumé exécutif
 
-🔴 **GitLab reste prioritaire** : aucune nouvelle Security Patch Release n'a remplacé les correctifs du 23 septembre. Les branches corrigées restent `19.4.1`, `19.3.3` et `19.2.7`, avec deux RCE CI/CD CVSS 9.9.
+🔴 **GitLab reste prioritaire** : aucune nouvelle Security/Critical Patch Release n'a remplacé les versions `19.4.1`, `19.3.3` et `19.2.7`. Les deux RCE CI/CD CVSS 9.9 restent le motif d'upgrade immédiat.
 
-🟠 **Nouveau kernel Rocky/RHEL 9 : `5.14.0-687.50.1.el9_8`**. Il correspond à **RHSA-2026:70459**, classé **Important**, et corrige 13 CVE. Ce kernel ne corrige pas les quatre CVE suivies dans **RHSB-2026-011**, qui reste en statut Ongoing.
+🟠 **Rocky/RHEL 9 : nouveau kernel `5.14.0-687.51.1.el9_8`**. Il correspond à **RHSA-2026:71232 (Important)** et corrige notamment **DirtyAH6 (CVE-2026-80844)** et **TUNderflow (CVE-2026-81000)**. En revanche, **DiagSpill (CVE-2026-74469)** et **PPPoEject (CVE-2026-68121)** ne figurent pas dans cet advisory et RHSB-2026-011 reste Ongoing.
 
-🟢 **Proxmox stable** : `pve-manager 9.2.20` et kernel `7.0.14-19-pve` restent les dernières versions observées.
+🟢 **Proxmox production reste sur `pve-manager 9.2.20` / kernel `7.0.14-19-pve`**. Un build `7.0.14-20` est visible en dépôt de test PDM, mais pas encore dans le canal PVE enterprise/no-subscription observé : ne pas le traiter comme cible de production.
 
 ---
 
@@ -31,7 +36,7 @@ important_kernel_advisory: true
 
 ## Critical Patch Release toujours en vigueur
 
-Versions corrigées actuellement maintenues :
+Versions corrigées :
 
 ```text
 19.4.x -> 19.4.1
@@ -39,7 +44,7 @@ Versions corrigées actuellement maintenues :
 19.2.x -> 19.2.7
 ```
 
-GitLab recommande la mise à jour immédiate des installations Self-Managed affectées.
+GitLab recommande toujours la mise à jour immédiate des installations Self-Managed affectées.
 
 ### 🔴 Critique — CVE-2026-89078
 
@@ -53,7 +58,7 @@ GitLab recommande la mise à jour immédiate des installations Self-Managed affe
 - **Fonction concernée :** configuration CI/CD avec expression régulière spécialement construite
 - **Affecté :** `19.2 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
 - **Corrigé :** `19.2.7`, `19.3.3`, `19.4.1`
-- **Action :** 🔴 mise à jour immédiate
+- **Action MCO :** 🔴 mise à jour immédiate
 
 ### 🔴 Critique — CVE-2026-93577
 
@@ -67,17 +72,15 @@ GitLab recommande la mise à jour immédiate des installations Self-Managed affe
 - **Fonction concernée :** configuration CI/CD avec expression régulière spécialement construite
 - **Affecté :** `19.2 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
 - **Corrigé :** `19.2.7`, `19.3.3`, `19.4.1`
-- **Action :** 🔴 mise à jour immédiate
+- **Action MCO :** 🔴 mise à jour immédiate
 
 ### 🟠 Haute — CVE-2026-84739
 
 - **CVSS :** 8.7
 - **Type :** XSS dans le visualiseur de diff de Merge Request
-- **Impact :** exécution de JavaScript dans la session d'un autre utilisateur
-- **Authentification :** requise côté attaquant
-- **Interaction utilisateur :** requise côté victime
-- **Affecté :** `13.11 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
-- **Action :** mise à jour immédiate
+- **Impact :** JavaScript arbitraire dans la session d'un autre utilisateur
+- **Prérequis :** attaquant authentifié + interaction victime
+- **Corrigé :** `19.2.7`, `19.3.3`, `19.4.1`
 
 ### 🟠 Haute — CVE-2026-92470
 
@@ -87,21 +90,8 @@ GitLab recommande la mise à jour immédiate des installations Self-Managed affe
 - **Impact :** exposition de variables CI/CD sensibles dans des traces debug
 - **Authentification :** requise
 - **Interaction utilisateur :** aucune
-- **Fonction concernée :** Duo AI + traces de jobs en mode debug
-- **Affecté :** `18.7 < 19.2.7`, `19.3 < 19.3.3`, `19.4 < 19.4.1`
-- **Action :** mise à jour immédiate
-
-## Autres points de sécurité GitLab
-
-| CVE | CVSS | Risque notable |
-|---|---:|---|
-| CVE-2026-92874 | 5.4 | dépassement du scope d'un token MCP |
-| CVE-2026-92530 | 4.3 | spoof d'auteur via Direct Transfer |
-| CVE-2026-8937 | 4.3 | lecture de contenus privés via Epic Issues REST API |
-| CVE-2026-92529 | 4.3 | contournement de gouvernance Duo Workflow |
-| CVE-2026-10518 | 4.3 | lecture de politiques de sécurité privées |
-| CVE-2026-4523 | 3.7 | **lecture non authentifiée de traces CI/CD contenant potentiellement des variables sensibles** |
-| CVE-2026-92628 | 3.1 | contexte utilisateur incorrect dans `gitlab_search` MCP |
+- **Fonction concernée :** Duo AI + traces de jobs debug
+- **Corrigé :** `19.2.7`, `19.3.3`, `19.4.1`
 
 ### Signaux à retenir
 
@@ -111,98 +101,130 @@ GitLab recommande la mise à jour immédiate des installations Self-Managed affe
 - **Sans authentification :** CVE-2026-4523
 - **Auth bypass total :** aucun nouveau cas critique identifié dans la release suivie
 
+**Action MCO :** toute instance Self-Managed encore sous `19.3.2` doit passer au minimum à `19.3.3`.
+
 ---
 
 # Rocky Linux / RHEL 9
 
 ## Nouveau kernel de sécurité
 
-Le dépôt Rocky Linux 9 BaseOS x86_64 contient désormais :
+Dernier kernel Rocky Linux 9 BaseOS x86_64 observé :
 
 ```text
-5.14.0-687.50.1.el9_8
+5.14.0-687.51.1.el9_8
 ```
 
-Paquet daté du **24 septembre 2026**.
+Le paquet est daté du **25 septembre 2026**.
 
-Ce build correspond à **RHSA-2026:70459**, advisory Red Hat classé **Important**, publié le 23 septembre, avec 13 CVE corrigées.
+Il correspond à **RHSA-2026:71232**, advisory Red Hat classé **Important**, publié le 24 septembre 2026.
 
-### CVE corrigées par RHSA-2026:70459
+### CVE corrigées par RHSA-2026:71232
 
 ```text
-CVE-2025-39964
-CVE-2026-45894
-CVE-2026-45959
-CVE-2026-53062
-CVE-2026-63823
-CVE-2026-68155
-CVE-2026-68156
-CVE-2026-68157
-CVE-2026-68188
-CVE-2026-68293
-CVE-2026-68391
-CVE-2026-72072
-CVE-2026-74518
+CVE-2026-23007
+CVE-2026-53005
+CVE-2026-63802
+CVE-2026-63831
+CVE-2026-64053
+CVE-2026-64383
+CVE-2026-64534
+CVE-2026-64564
+CVE-2026-68201
+CVE-2026-72261
+CVE-2026-80844
+CVE-2026-81000
+CVE-2026-89846
 ```
 
-### Classement MCO
+### Classement MCO des plus significatives
 
-| Niveau | CVE / composant | Impact / vecteur | Action |
-|---|---|---|---|
-| 🟠 Important | RHSA-2026:70459 — ensemble des 13 CVE | advisory kernel RHEL 9 classé Important | déployer `687.50.1` et redémarrer |
-| 🟠 CVSS 7.3 Red Hat | CVE-2025-39964 — AF_ALG crypto | local, faibles privilèges, corruption d'état / DoS / intégrité | patcher ; pas de mitigation Red Hat satisfaisante |
-| 🟡 CVSS 7.0 Red Hat | CVE-2026-53062 — dm-cache SMQ | local, complexité élevée, data race / corruption / DoS | patcher si device-mapper cache utilisé |
-| 🟡 CVSS 7.0 Red Hat | CVE-2026-68156 — libceph | contexte Ceph client, use-after-free, crash / possible élévation | patcher ; désactiver module `ceph` si inutilisé |
-| 🟡 CVSS 7.0 Red Hat | CVE-2026-68157 — libceph | CRUSH map malformée, crash / DoS | patcher, priorité renforcée sur clients Ceph |
-| 🟡 CVSS 7.0 Red Hat | CVE-2026-68293 — mlx5 | buffer overflow pilote Mellanox, crash / DoS | patcher sur hôtes mlx5 |
-| 🟡 CVSS 7.0 Red Hat | CVE-2026-68391 — Bluetooth | use-after-free local, crash / possible code execution | faible exposition serveur si Bluetooth absent |
-| 🟡 CVSS 7.0 Red Hat | CVE-2026-72072 — MACsec/mlx5e | local, UAF, crash / DoS | priorité si MACsec offload utilisé |
+| Criticité | CVE | Impact / vecteur | Prérequis | Correctif |
+|---|---|---|---|---|
+| 🟠 Important / CVSS 8.3 | **CVE-2026-80844 — DirtyAH6** | corruption mémoire AH6/XFRM, élévation locale vers root | utilisateur local + unprivileged user namespaces + IPv6 AH/XFRM | **687.51.1** |
+| 🟠 Important / CVSS 7.8 | **CVE-2026-81000 — TUNderflow** | OOB write TUN/TAP, corruption mémoire, possible code execution/root | utilisateur local à faibles privilèges + TUN/TAP / OVS | **687.51.1** |
+| 🟠 Important / CVSS Red Hat 7.0 | **CVE-2026-89846 — qla2xxx** | lecture hors limites, fuite mémoire kernel / crash | exposition Fibre Channel qla2xxx ; Red Hat score AV:L/AC:H | **687.51.1** |
 
-Les autres CVE du même advisory restent couvertes par la mise à jour `687.50.1`; aucune n'a été identifiée ce matin comme nécessitant une action distincte supérieure à l'advisory global Important.
+Les autres CVE du même advisory sont couvertes par la mise à jour `687.51.1`; aucune n'a été identifiée aujourd'hui comme nécessitant une action supérieure à l'advisory global Important.
 
-### Attention : RHSB-2026-011 reste distinct
+## RHSB-2026-011 : correction partielle
 
-Le nouveau kernel `687.50.1` **ne liste pas** les quatre CVE suivantes dans RHSA-2026:70459 :
+Le bulletin reste **Ongoing**.
 
-- CVE-2026-74469 — DiagSpill
-- CVE-2026-80844 — DirtyAH6
-- CVE-2026-81000 — TUNderflow
-- CVE-2026-68121 — PPPoEject
+État du lot réseau :
 
-Red Hat continue d'afficher **RHSB-2026-011** comme **Ongoing**. Il ne faut donc pas considérer `687.50.1` comme le correctif de ce bulletin.
+| CVE | État avec `687.51.1` |
+|---|---|
+| CVE-2026-80844 — DirtyAH6 | ✅ corrigée via RHSA-2026:71232 |
+| CVE-2026-81000 — TUNderflow | ✅ corrigée via RHSA-2026:71232 |
+| CVE-2026-74469 — DiagSpill | ⚠️ pas listée dans RHSA-2026:71232 |
+| CVE-2026-68121 — PPPoEject | ⚠️ pas listée dans RHSA-2026:71232 |
 
-Contrôle :
+### Vulnérabilités restant à surveiller
+
+**CVE-2026-74469 — DiagSpill**
+- Important, CVSS Red Hat 8.3
+- SCTP / `sctp_diag`
+- vecteur réseau dans l'évaluation Red Hat
+- peut conduire à corruption mémoire, DoS et potentiellement exécution de code
+- priorité renforcée car le bulletin Red Hat indique qu'elle ne dépend pas des unprivileged user namespaces pour le scénario local décrit
+
+**CVE-2026-68121 — PPPoEject**
+- Important, CVSS Red Hat 7.3
+- local, faibles privilèges
+- use-after-free / corruption mémoire
+- nécessite PPPoE et, pour le scénario du bulletin, unprivileged user namespaces
+
+### Action MCO Rocky
 
 ```bash
-uname -r
 dnf check-update kernel
-dnf repoquery --latest-limit=3 kernel
-lsmod | egrep '^(sctp|sctp_diag|ah6|tun|pppoe|ceph)\b'
+dnf update kernel
+reboot
+uname -r
 ```
 
-**Action MCO Rocky :** installer `5.14.0-687.50.1.el9_8` selon la fenêtre de maintenance et prévoir un reboot, tout en maintenant la surveillance spécifique de RHSB-2026-011.
+**Cible immédiate : `5.14.0-687.51.1.el9_8`.**
+
+Après déploiement, maintenir la surveillance de DiagSpill et PPPoEject tant qu'un advisory RHEL 9 standard ne confirme pas leur correction.
 
 ---
 
 # Proxmox VE
 
-État observé ce matin :
+## État production observé
 
 ```text
-Proxmox VE        9.2
-pve-manager       9.2.20
-kernel cible      7.0.14-19-pve
+Proxmox VE       9.2
+pve-manager      9.2.20
+kernel prod      7.0.14-19-pve
 ```
 
-Aucun `pve-manager` plus récent que `9.2.20` n'est visible dans le dépôt no-subscription officiel consulté.
+Aucun `pve-manager` supérieur à `9.2.20` n'est visible dans le dépôt PVE no-subscription officiel consulté.
 
-Le dernier changelog kernel signé 7.0 reste :
+Le dernier kernel signé visible dans le canal **PVE enterprise** reste :
 
 ```text
 proxmox-kernel-signed-7.0_7.0.14+19
 ```
 
-Aucun build `+20` ou supérieur n'est visible dans les métadonnées officielles Proxmox consultées ce matin.
+## Kernel 7.0.14-20 aperçu en test
+
+Un changelog :
+
+```text
+proxmox-kernel-7.0_7.0.14-20
+```
+
+est apparu le **25 septembre** dans un dépôt **pdm-test**.
+
+Il n'est pas encore visible dans les métadonnées PVE enterprise/no-subscription consultées. Il est donc à considérer comme **signal de prépublication/test**, pas comme cible MCO de production.
+
+### Action MCO Proxmox
+
+- conserver `7.0.14-19-pve` comme cible production actuelle ;
+- ne pas forcer `7.0.14-20` depuis un dépôt de test ;
+- surveiller sa promotion vers les dépôts PVE habituels.
 
 Contrôle :
 
@@ -213,27 +235,26 @@ apt update
 apt list --upgradable 2>/dev/null | egrep 'proxmox-kernel|pve-manager'
 ```
 
-**Action MCO Proxmox :** pas de nouvelle urgence aujourd'hui ; poursuivre le passage vers `7.0.14-19-pve` sur les nœuds encore en version antérieure, avec reboot pour activation.
-
 ---
 
 # Actions du jour
 
 ## 🔴 Urgent
 
-- [ ] Mettre à jour tout GitLab Self-Managed encore sous `19.3.2` vers **`19.3.3` minimum** (ou `19.4.1` si la montée de branche est prévue).
-- [ ] Prioriser les GitLab exposés à Internet et les instances où des développeurs peuvent modifier la configuration CI/CD.
-- [ ] Vérifier l'exposition de secrets CI/CD et Duo AI sur EE.
+- [ ] Mettre à jour les GitLab Self-Managed affectés vers `19.4.1`, `19.3.3` ou `19.2.7`.
+- [ ] Prioriser les instances GitLab exposées à Internet et les utilisateurs pouvant modifier la CI/CD.
 
 ## 🟠 Haute priorité
 
-- [ ] Déployer le nouveau kernel Rocky `5.14.0-687.50.1.el9_8` issu de RHSA-2026:70459.
-- [ ] Planifier le reboot des Rocky après installation.
-- [ ] Continuer à surveiller séparément RHSB-2026-011.
+- [ ] Déployer Rocky `5.14.0-687.51.1.el9_8`.
+- [ ] Rebooter les Rocky afin d'activer le kernel.
+- [ ] Considérer DirtyAH6 et TUNderflow comme corrigées après activation de `687.51.1`.
+- [ ] Continuer à surveiller DiagSpill et PPPoEject.
 
 ## 🟡 Normale
 
-- [ ] Vérifier les Proxmox sous `7.0.14-18-pve` ou antérieur et planifier `7.0.14-19-pve`.
+- [ ] Maintenir Proxmox sur la cible `7.0.14-19-pve`.
+- [ ] Surveiller la promotion de `7.0.14-20` hors dépôt de test.
 
 ---
 
@@ -242,22 +263,34 @@ apt list --upgradable 2>/dev/null | egrep 'proxmox-kernel|pve-manager'
 - GitLab — Critical Patch Release 19.4.1, 19.3.3, 19.2.7
   https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/
 
-- GitLab — Release and maintenance policy
-  https://docs.gitlab.com/policy/maintenance/
-
-- Red Hat — RHSA-2026:70459 / Security Data
+- Red Hat — RHSA-2026:71232 / Security Data
   https://access.redhat.com/hydra/rest/securitydata/csaf
 
 - Red Hat — RHSB-2026-011
   https://access.redhat.com/security/vulnerabilities/RHSB-2026-011
 
+- Red Hat — CVE-2026-80844
+  https://access.redhat.com/security/cve/cve-2026-80844
+
+- Red Hat — CVE-2026-81000
+  https://access.redhat.com/security/cve/cve-2026-81000
+
+- Red Hat — CVE-2026-74469
+  https://access.redhat.com/security/cve/cve-2026-74469
+
+- Red Hat — CVE-2026-68121
+  https://access.redhat.com/security/cve/cve-2026-68121
+
 - Rocky Linux 9 BaseOS x86_64
   https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
 
-- Proxmox — pve-manager changelogs
+- Proxmox — pve-manager
   https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-manager/
 
-- Proxmox — kernel 7.0 signé
+- Proxmox — kernel PVE enterprise
   https://metadata.cdn.proxmox.com/enterprise/changelogs/pve/dists/trixie/pve-enterprise/p/proxmox-kernel-signed-7.0/
 
-> Rapport orienté exploitation : seuls les changements susceptibles de modifier le niveau de risque ou d'entraîner une action MCO sont mis en avant.
+- Proxmox — kernel 7.0 test
+  https://sg3.metadata.cdn.proxmox.com/download/changelogs/pdm/dists/trixie/pdm-test/p/proxmox-kernel-7.0/
+
+> Rapport orienté exploitation : seules les nouveautés susceptibles de modifier le niveau de risque ou d'entraîner une action MCO sont mises en avant.
