@@ -1,35 +1,34 @@
 ---
 type: mco-daily
-date: 2026-09-28
-generated_at: 2026-09-28T06:23:00+02:00
+date: 2026-09-29
+generated_at: 2026-09-29T08:26:00+02:00
 status: critical
 rocky_kernel_latest: 5.14.0-687.52.1.el9_8
 rocky_security_advisory: RHSA-2026:71700
 proxmox_major: 9.2
 proxmox_pve_manager_latest: 9.2.20
 proxmox_kernel_production: 7.0.14-19-pve
-proxmox_kernel_test_seen: 7.0.14-20-pve
 gitlab_latest_security_release: 19.4.1
 gitlab_supported_security_fixes: [19.4.1, 19.3.3, 19.2.7]
 ---
 
-# MCO Daily — 28 septembre 2026
+# MCO Daily — 29 septembre 2026
 
 ## Résumé exécutif
 
-🔴 **GitLab reste prioritaire** : aucune nouvelle Security/Critical Patch Release n'a remplacé `19.4.1`, `19.3.3` et `19.2.7`. Les deux RCE CI/CD CVSS 9.9 restent le motif d'upgrade immédiat.
+🔴 **GitLab reste prioritaire** : aucune nouvelle Critical Patch Release identifiée ce matin après celle du 23 septembre. Les versions corrigées restent `19.4.1`, `19.3.3` et `19.2.7`. Deux RCE CI/CD CVSS 9.9 permettent à un utilisateur authentifié à faibles privilèges d'exécuter du code sur le serveur via une expression régulière spécialement forgée.
 
-🟠 **Rocky/RHEL 9 : nouveau kernel `5.14.0-687.52.1.el9_8`** via **RHSA-2026:71700 (Important)**. Ce build corrige notamment **PPPoEject / CVE-2026-68121**. Après DirtyAH6 et TUNderflow corrigées par `687.51.1`, il ne reste plus que **DiagSpill / CVE-2026-74469** non corrigée explicitement dans le flux RHEL 9 standard consulté.
+🟠 **Rocky/RHEL 9** : la cible reste `5.14.0-687.52.1.el9_8`, publiée via **RHSA-2026:71700 (Important)** le 25 septembre avec 17 CVE corrigées. Pas de kernel RHEL/Rocky 9 plus récent pertinent identifié ce matin.
 
-🟢 **Proxmox production reste stable** : `pve-manager 9.2.20` et `7.0.14-19-pve`. Le build `7.0.14-20` reste cantonné au canal de test observé.
+🟢 **Proxmox VE** : pas de nouvelle version de `pve-manager` au-delà de `9.2.20` dans le dépôt no-subscription consulté. Pour le parc, conserver le kernel `7.0.14-19-pve` comme cible production suivie et éviter de promouvoir un build de test sans validation.
 
 ---
 
 # GitLab Self-Managed
 
-## Critical Patch Release toujours en vigueur
+## Critical Patch Release en vigueur
 
-Versions corrigées :
+GitLab a publié le 23 septembre 2026 les versions corrigées :
 
 ```text
 19.4.x -> 19.4.1
@@ -37,38 +36,42 @@ Versions corrigées :
 19.2.x -> 19.2.7
 ```
 
+GitLab recommande la mise à niveau immédiate de toute installation affectée.
+
 ### Vulnérabilités prioritaires
 
-| Criticité | CVE | Impact | Prérequis | Corrigé |
-|---|---|---|---|---|
-| 🔴 9.9 | CVE-2026-89078 | RCE serveur via parser regex | auth requise, faibles privilèges, CI/CD regex, aucune interaction | 19.2.7 / 19.3.3 / 19.4.1 |
-| 🔴 9.9 | CVE-2026-93577 | RCE serveur via integer overflow regex | auth requise, faibles privilèges, CI/CD regex, aucune interaction | 19.2.7 / 19.3.3 / 19.4.1 |
-| 🟠 8.7 | CVE-2026-84739 | XSS diff Merge Request | attaquant authentifié + interaction victime | mêmes versions |
-| 🟠 7.7 | CVE-2026-92470 | fuite de variables CI/CD via Duo AI | EE, auth requise, traces debug | mêmes versions |
+| Criticité | CVE | Impact / vecteur | Prérequis | Versions affectées | Corrigé |
+|---|---|---|---|---|---|
+| 🔴 Critical 9.9 | CVE-2026-89078 | **RCE serveur**, double-free du parser regex via configuration CI/CD | réseau, auth requise, faibles privilèges, aucune interaction | 19.2 <19.2.7 ; 19.3 <19.3.3 ; 19.4 <19.4.1 | 19.2.7 / 19.3.3 / 19.4.1 |
+| 🔴 Critical 9.9 | CVE-2026-93577 | **RCE serveur**, integer overflow du compilateur regex via configuration CI/CD | réseau, auth requise, faibles privilèges, aucune interaction | mêmes branches | mêmes versions |
+| 🟠 High 8.7 | CVE-2026-84739 | XSS dans le diff viewer de Merge Request | attaquant authentifié, interaction de la victime | 13.11 à versions corrigées | mêmes versions |
+| 🟠 High 7.7 | CVE-2026-92470 | **fuite de variables CI/CD** depuis des traces debug via Duo AI | GitLab EE, auth requise, aucune interaction | 18.7 à versions corrigées | mêmes versions |
+| 🟡 Medium 5.4 | CVE-2026-92874 | dépassement du scope prévu d'un token MCP | auth + token MCP | 18.3 à versions corrigées | mêmes versions |
+| 🟢 Low 3.7 | CVE-2026-4523 | **lecture sans authentification de traces CI/CD** pouvant contenir des variables sensibles | réseau, **aucune authentification**, complexité élevée | 15.11 à versions corrigées | mêmes versions |
 
-### Signaux à retenir
+### Signaux MCO
 
-- **RCE :** CVE-2026-89078, CVE-2026-93577
-- **CI/CD :** CVE-2026-89078, CVE-2026-93577, CVE-2026-92470, CVE-2026-4523
-- **Secrets/tokens :** CVE-2026-92470, CVE-2026-4523, CVE-2026-92874
-- **Sans authentification :** CVE-2026-4523
-- **Auth bypass total :** aucun nouveau cas critique identifié dans la release suivie
+- **RCE :** CVE-2026-89078, CVE-2026-93577.
+- **CI/CD :** RCE via configuration CI/CD et exposition possible de variables/traces.
+- **Secrets/tokens :** CVE-2026-92470 et CVE-2026-92874.
+- **Sans authentification :** CVE-2026-4523.
+- **Auth bypass total critique :** aucun nouveau cas identifié dans la release suivie.
 
-**Action MCO :** toute instance encore en `19.3.2` doit passer au minimum en `19.3.3`.
+**Action :** toute instance encore en `19.3.2` doit passer au minimum en `19.3.3`. Prévoir la fenêtre adaptée : GitLab indique que cette patch release contient des migrations pouvant provoquer une indisponibilité sur une instance single-node.
 
 ---
 
 # Rocky Linux / RHEL 9
 
-## Nouveau kernel
+## Kernel actuel
 
 ```text
 5.14.0-687.52.1.el9_8
+RHSA-2026:71700 — Important
+Publication : 25 septembre 2026
 ```
 
-Le paquet est présent dans Rocky BaseOS x86_64 depuis le **25 septembre 2026**.
-
-Il correspond à **RHSA-2026:71700**, classé **Important**, avec 17 CVE corrigées :
+L'avis Red Hat référence 17 CVE corrigées :
 
 ```text
 CVE-2025-40323
@@ -90,38 +93,11 @@ CVE-2026-68273
 CVE-2026-80714
 ```
 
-## CVE prioritaire nouvellement corrigée
+### Point de vigilance
 
-### 🟠 CVE-2026-68121 — PPPoEject
+**CVE-2026-68121 / PPPoEject** est corrigée par ce build. Le suivi de **CVE-2026-74469 / DiagSpill** reste pertinent tant qu'un correctif RHEL 9 standard explicite n'est pas confirmé dans le flux suivi.
 
-- **Criticité Red Hat :** Important
-- **CVSS :** 7.3
-- **Impact :** use-after-free / corruption mémoire ; crash/DoS et comportement indéfini, avec exécution de code potentielle selon exploitation
-- **Vecteur :** local
-- **Privilèges :** faibles
-- **Interaction utilisateur :** aucune
-- **Fonction concernée :** PPPoE
-- **Correctif RHEL 9 standard :** `RHSA-2026:71700` / kernel `5.14.0-687.52.1.el9_8`
-
-## État RHSB-2026-011
-
-| CVE | État RHEL 9 standard observé |
-|---|---|
-| CVE-2026-80844 — DirtyAH6 | ✅ corrigée par `687.51.1` |
-| CVE-2026-81000 — TUNderflow | ✅ corrigée par `687.51.1` |
-| CVE-2026-68121 — PPPoEject | ✅ corrigée par `687.52.1` |
-| CVE-2026-74469 — DiagSpill | ⚠️ toujours à surveiller |
-
-### DiagSpill reste le point résiduel
-
-- **CVE :** CVE-2026-74469
-- **Criticité Red Hat :** Important
-- **CVSS :** 8.3
-- **Sous-système :** SCTP / `sctp_diag`
-- **Impact :** out-of-bounds write, corruption mémoire, DoS ; potentiel d'exécution de code selon contexte
-- **Particularité :** le bulletin Red Hat indique que le scénario local ne dépend pas des unprivileged user namespaces
-
-### Action MCO Rocky
+### Action Rocky
 
 ```bash
 dnf check-update kernel
@@ -130,31 +106,30 @@ reboot
 uname -r
 ```
 
-**Cible actuelle : `5.14.0-687.52.1.el9_8`.**
-
-Après activation de ce kernel, maintenir la surveillance de DiagSpill jusqu'à publication d'un correctif RHEL 9 standard explicite.
+**Cible MCO : `5.14.0-687.52.1.el9_8`.**
 
 ---
 
 # Proxmox VE
 
-## État production observé
+## État observé
 
 ```text
 Proxmox VE       9.2
 pve-manager      9.2.20
-kernel prod      7.0.14-19-pve
+kernel suivi     7.0.14-19-pve
 ```
 
-Aucun `pve-manager` supérieur à `9.2.20` n'est visible dans le dépôt PVE no-subscription consulté.
+Le dépôt PVE no-subscription consulté ne montre pas de `pve-manager` supérieur à `9.2.20`.
 
-Le kernel `7.0.14-20` reste observé dans un canal de test, mais pas encore comme cible de production dans les métadonnées PVE no-subscription/enterprise consultées.
+Un retour récent du forum Proxmox décrit des erreurs DMA/I/O avec certains workloads NVMe sous la famille 7.0.14 ; il s'agit d'un signal opérationnel à surveiller, pas d'un avis de sécurité officiel. Ne pas généraliser le contournement proposé sur le forum sans reproduire le problème.
 
-### Action MCO Proxmox
+### Action Proxmox
 
-- conserver `7.0.14-19-pve` comme cible production actuelle ;
-- ne pas forcer `7.0.14-20` depuis un dépôt de test ;
-- surveiller sa promotion vers les dépôts PVE habituels.
+- conserver `7.0.14-19-pve` comme cible de production suivie ;
+- ne pas forcer un kernel provenant d'un canal de test ;
+- surveiller les prochains builds 7.0.14 et leur promotion dans les dépôts habituels ;
+- sur les nœuds NVMe/IOMMU, surveiller les WARN `dma_iova_link` et erreurs I/O après mise à jour.
 
 ---
 
@@ -162,44 +137,30 @@ Le kernel `7.0.14-20` reste observé dans un canal de test, mais pas encore comm
 
 ## 🔴 Urgent
 
-- [ ] Mettre à jour GitLab vers `19.4.1`, `19.3.3` ou `19.2.7` selon la branche.
+- [ ] GitLab : passer toute instance vulnérable vers `19.4.1`, `19.3.3` ou `19.2.7` selon sa branche.
 
 ## 🟠 Haute priorité
 
-- [ ] Déployer Rocky `5.14.0-687.52.1.el9_8`.
-- [ ] Rebooter afin d'activer le nouveau kernel.
-- [ ] Considérer PPPoEject comme corrigée après activation de `687.52.1`.
-- [ ] Maintenir la surveillance de DiagSpill.
+- [ ] Rocky : vérifier que `5.14.0-687.52.1.el9_8` est installé **et actif après reboot**.
+- [ ] Maintenir la surveillance de DiagSpill / CVE-2026-74469.
 
-## 🟡 Normale
+## 🟡 Surveillance
 
-- [ ] Maintenir Proxmox sur `7.0.14-19-pve` en cible prod.
-- [ ] Surveiller la promotion de `7.0.14-20` hors canal de test.
+- [ ] Proxmox : conserver `7.0.14-19-pve` comme référence prod du parc.
+- [ ] Surveiller les prochains kernels PVE et les éventuels correctifs DMA/IOMMU.
 
 ---
 
 # Sources
 
-- GitLab — Critical Patch Release 19.4.1, 19.3.3, 19.2.7
+- GitLab — Critical Patch Release 19.4.1, 19.3.3, 19.2.7  
   https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-1-released/
 
-- Red Hat — RHSA-2026:71700 / Security Data
+- Red Hat Security Data — RHSA-2026:71700  
   https://access.redhat.com/hydra/rest/securitydata/csaf
 
-- Red Hat — RHSB-2026-011
-  https://access.redhat.com/security/vulnerabilities/RHSB-2026-011
-
-- Red Hat — CVE-2026-68121
-  https://access.redhat.com/security/cve/cve-2026-68121
-
-- Red Hat — CVE-2026-74469
-  https://access.redhat.com/security/cve/cve-2026-74469
-
-- Rocky Linux 9 BaseOS x86_64
-  https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
-
-- Proxmox — pve-manager
+- Proxmox — pve-manager, dépôt no-subscription  
   https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-manager/
 
-- Proxmox — kernel PVE enterprise
-  https://metadata.cdn.proxmox.com/enterprise/changelogs/pve/dists/trixie/pve-enterprise/p/proxmox-kernel-signed-7.0/
+- Proxmox Support Forum — dma_iova_link / kernel 7.0.14  
+  https://forum.proxmox.com/threads/warning-drivers-iommu-dma-iommu-c-1953-at-dma_iova_link.186448/
