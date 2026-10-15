@@ -1,99 +1,121 @@
 ---
 type: mco-daily
-date: 2026-10-14
+date: 2026-10-15
 timezone: Europe/Paris
-status: watch
-gitlab_ce_ee_targets: [19.4.2, 19.3.5, 19.2.8]
-rocky9_kernel: 5.14.0-687.56.1.el9_8
-proxmox9_kernel: 7.0.14-24-pve
-proxmox_pve_manager: 9.2.21
+status: action-required
+rocky_kernel_latest: 5.14.0-687.57.1.el9_8
+rocky_kernel_advisory: RHSA-2026:81552
+proxmox_kernel_latest_no_subscription: 7.0.14-24-pve
+proxmox_pve_manager_latest_no_subscription: 9.2.21
+gitlab_security_release: [19.4.2, 19.3.5, 19.2.8]
 ---
 
-# Brief MCO — 14 octobre 2026
+# Brief MCO — 15 octobre 2026
 
 ## Résumé exécutif
 
-**P0 GitLab :** pas de nouvelle Critical Patch Release identifiée depuis le 12 octobre. **CVE-2026-97229, CVSS 10.0 : RCE CI/CD sans authentification** sur les versions non corrigées. Cibles CE/EE : **19.4.2, 19.3.5, 19.2.8**. Ne pas rester sur 19.3.4 : le correctif du bug MR/Ona est inclus dans 19.3.5.
+**P0 — GitLab :** la Critical Patch du **12 octobre 2026** reste urgente. **CVE-2026-97229 (CVSS 10.0) est une RCE CI/CD exploitable sans authentification**. Cibles GitLab CE/EE : **19.4.2 / 19.3.5 / 19.2.8**. Pas de nouvelle Critical Patch officielle identifiée ce matin.
 
-**P1 Rocky Linux 9 :** pas de nouveau kernel depuis le 8 octobre. Dernière cible x86_64 : **5.14.0-687.56.1.el9_8**.
+**P1 — Rocky/RHEL 9 : nouveau kernel `5.14.0-687.57.1.el9_8`**, publié le **13 octobre**, associé à **RHSA-2026:81552 (Important)**, avec **13 CVE kernel** corrigées. Il remplace `687.56.1`.
 
-**P1 Proxmox VE 9 :** pas de nouveau kernel identifié depuis le 10 octobre. Dernier changelog no-subscription : **7.0.14-24-pve** ; `pve-manager 9.2.21`. Déploiement pilote recommandé compte tenu des kernel panics/régressions observés sur le parc.
+**P1 — Proxmox :** pas de kernel plus récent que `7.0.14-24-pve` ni de `pve-manager` plus récent que `9.2.21` dans les index no-subscription vérifiés. Validation pilote toujours recommandée compte tenu des kernel panics/régressions matérielles suivis.
 
-## GitLab Self-Managed CE/EE — sécurité
+## 1. Rocky Linux / RHEL 9 — nouveau kernel et correctifs
 
-Dernière publication officielle vérifiée : **12 octobre 2026**, Critical Patch Release **19.4.2 / 19.3.5 / 19.2.8**. GitLab recommande la mise à jour immédiate des versions affectées.
+### Version disponible
 
-| CVE | CVSS | Composant, impact et conditions |
-|---|---:|---|
-| **CVE-2026-97229** | **10.0 Critical** | **RCE serveur / CI/CD**, compilateur d'expressions régulières ; réseau, **sans authentification** (PR:N), faible complexité, aucune interaction (UI:N). |
-| CVE-2026-92883 | 8.7 High | XSS dans la coloration syntaxique d'un dépôt ; réseau, authentifié à faibles privilèges, interaction victime requise. |
-| CVE-2026-16301 | 8.5 High | **Bypass d'autorisation** dans les pipelines descendants sur branches protégées ; réseau, rôle Developer, sans interaction. |
-| CVE-2026-14814 | 8.2 High | Empoisonnement du cache des fichiers de dépôt ; exécution de contenu CI/CD inattendu et possible **fuite de variables protégées** ; réseau, authentifié faible privilège, complexité élevée, sans interaction. |
-| CVE-2026-81839 | 7.7 High | GitLab EE : pipelines exécutés avec privilèges d'un nouveau groupe après transfert de projet ; authentifié, complexité élevée, interaction requise. |
-| CVE-2026-96893 | 7.3 High | GitLab EE / Duo Agent Platform : injection d'instructions pouvant entraîner une exécution de commandes attribuée à un autre utilisateur ; authentifié, interaction requise. |
-| CVE-2026-101168 | 6.2 Medium | GitLab Pages : **exposition de tokens et secrets** dans logs et événements d'erreur ; utilisateur authentifié avec accès privilégié aux logs, aucune interaction. |
-| CVE-2026-7767 | 5.8 Medium | Proxy Kubernetes : redirection pouvant divulguer des jetons ; utilisateur authentifié contrôlant un agent Kubernetes, complexité élevée, interaction requise. |
-| CVE-2026-16275 | 5.3 Medium | GraphQL notes : lecture de notes confidentielles de projets publics **sans authentification**, aucune interaction. |
-| CVE-2026-84284 | 5.3 Medium | GraphQL work items : lecture de contenus de projets/groupes privés **sans authentification**, aucune interaction. |
-| CVE-2026-85529 | 5.3 Medium | GraphQL : lecture de notes internes/confidentielles de projets publics **sans authentification**, aucune interaction. |
+```text
+5.14.0-687.57.1.el9_8.x86_64
+```
 
-**Versions affectées et corrigées :** pour CVE-2026-97229, les branches 19.2 antérieures à 19.2.8, 19.3 antérieures à 19.3.5 et 19.4 antérieures à 19.4.2 sont affectées. Pour les autres CVE, les versions initiales affectées varient selon la fonctionnalité (par exemple 18.7 pour CVE-2026-16301, 12.0 pour CVE-2026-101168, 17.4 pour CVE-2026-16275). Les trois versions correctives publiées couvrent les branches maintenues ; se référer aux plages individuelles dans l'avis GitLab.
+Le dépôt Rocky Linux 9 BaseOS x86_64 publie `kernel`, `kernel-core` et `kernel-modules` **le 13 octobre 2026 vers 20:10 UTC**. L'erratum **RHSA-2026:81552**, classé **Important** par Red Hat, correspond à ce lot de corrections ; la publication Rocky est également répertoriée sous **RLSA-2026:81552**.
 
-**Action P0 :** sauvegarder GitLab Omnibus et la configuration/secrets, contrôler le verrouillage DNF, passer directement à **19.3.5** si l'instance est toujours en 19.3.2 ; valider Git over SSH, runners, pipelines, merge requests, Pages, GraphQL et authentification. L'intégration Ona activée expose un bug MR dans 19.3.4, corrigé en 19.3.5.
+### Vulnérabilités à prioriser
 
-**AI Gateway :** CVE-2026-90970, CVSS 9.9, RCE dans le **Self-Hosted AI Gateway** avec Duo Agent Platform, distinct de la version GitLab CE/EE. Vérifier la présence de ce composant avant de considérer ce risque applicable ; versions AI Gateway corrigées précédemment publiées : 19.2.4, 19.3.2, 19.4.1.
-
-## Rocky Linux / RHEL 9 — kernel
-
-Le dépôt Rocky 9 BaseOS x86_64 ne présente pas de paquet kernel postérieur à **5.14.0-687.56.1.el9_8**, publié le **8 octobre 2026**. Pas de nouvelle cible kernel ce matin.
-
-L'erratum RHEL **RHSA-2026:76739** du 8 octobre comprend notamment :
-
-| CVE | CVSS Red Hat | Impact et prérequis | État RHEL 9 kernel |
+| CVE | CVSS Red Hat | Composant / impact | Conditions et exposition |
 |---|---:|---|---|
-| **CVE-2026-74516** | **8.8** | KVM AMD / AVIC / virtualisation imbriquée : invité L1 pouvant interférer avec l'APIC de l'hôte et provoquer un DoS ; dépend de KVM AMD/nested. | Fixed, RHSA-2026:76739 |
-| CVE-2026-46317 | 7.0 | KVM ARM64 : use-after-free de structures MMU imbriquées, DoS ou élévation locale ; non applicable aux hôtes x86_64. | Fixed, RHSA-2026:76739 |
-| CVE-2026-63994 | 7.0 | Tunnels réseau / PMTUD : use-after-free, crash/DoS possible avec accès local et conditions réseau spécifiques. | Fixed, RHSA-2026:76739 |
-| CVE-2026-89481 | 7.1 | Vulnérabilité réseau du lot ; vecteur réseau, privilèges faibles, aucune interaction (selon Red Hat). | Fixed, RHSA-2026:76739 |
+| **CVE-2026-68123** | **7.0** | **Open vSwitch :** underflow mémoire lors du traitement de paquets GSO, corruption mémoire / DoS possible | Exposition si Open vSwitch et chemin GSO concerné sont utilisés ; conditions précises à qualifier selon la configuration |
+| **CVE-2026-72318** | **7.0** | **CIFS/SMB DFS :** lecture hors limites, fuite mémoire ou DoS | Risque sur client CIFS traitant une référence DFS malformée ; serveur SMB distant potentiellement non fiable |
+| **CVE-2026-46309** | **7.0** | **Intel Xe DRM :** accès GPU à des données résiduelles, fuite d'informations inter-processus | Accès local et GPU Intel concerné, faible privilège, complexité élevée, pas d'interaction |
+| **CVE-2026-63925** | **7.0** | **MACsec XPN :** contournement de protection anti-rejeu (authentification par rejeu) | MACsec avec XPN activé ; conditions de wrap du compteur ; ne constitue pas un auth bypass GitLab |
+| **CVE-2026-64507** | **6.0** | **BPF JIT / Spectre-v2 :** purge IBPB manquante lors de la réutilisation de mémoire JIT | Local, privilèges élevés, pas d'interaction, contexte x86/BPF JIT |
 
-**Point de vigilance :** CVE-2026-68432 (VXLAN, Red Hat CVSS 7.0) concerne le contrôle des privilèges entre namespaces réseau avec CAP_NET_ADMIN. Ne pas déduire sa correction de la seule présence dans une liste de CVE : contrôler explicitement le statut produit/erratum Red Hat avant de la déclarer corrigée.
+Les autres CVE incluses dans **RHSA-2026:81552** sont : **CVE-2026-64508** (durcissement BPF JIT), **CVE-2026-68236** (AMD display), **CVE-2026-68245** (amdgpu), **CVE-2026-68278** (DisplayPort MST), **CVE-2026-80887** (vmwgfx), **CVE-2026-89811** (amdkfd), **CVE-2026-89894** (pilote média cx231xx) et **CVE-2026-89970** (NVMe target authentication). Les CVSS individuels non confirmés ici ne sont pas extrapolés.
 
-**Action P1 :** terminer le déploiement de `5.14.0-687.56.1.el9_8`, redémarrer en fenêtre contrôlée, vérifier `uname -r` et conserver un noyau de secours. Pour les serveurs sans KVM ARM64, la CVE correspondante n'est pas pertinente matériellement.
+**Action MCO :** prioriser les serveurs utilisant Open vSwitch, CIFS/DFS, BPF ou NVMe target, puis déployer `687.57.1` selon les fenêtres de maintenance. Contrôler la présence des modules tiers (DKMS), conserver un ancien kernel et vérifier le noyau actif après redémarrage :
 
-## Proxmox VE 9 — noyau et gestionnaire
+```bash
+dnf check-update kernel kernel-core kernel-modules
+dnf update --security
+reboot
+uname -r
+```
 
-Le dépôt officiel **pve-no-subscription** référence au plus récent le changelog **proxmox-kernel-7.0 (7.0.14-24)**, daté du **10 octobre 2026**. `pve-manager` reste à **9.2.21** dans l'index contrôlé. Aucun nouveau `-25` n'a été trouvé au moment du contrôle.
+Ne pas interpréter le seul numéro upstream 5.14 comme absence de correctif : Red Hat et Rocky appliquent des backports.
 
-Correctifs importants du kernel **7.0.14-24** :
+## 2. GitLab Self-Managed CE/EE — urgence toujours active
 
-- **PCIe #7969** : retour sur une modification de négociation de vitesse de lien provoquant la disparition de NIC/NVMe ou des erreurs PCIe fatales sur certains hôtes.
-- **Intel ixgbe #7874** : corrections de stabilité pour certaines cartes Intel X550/E610.
-- **CVE-2026-97612** : métadonnées de fragmentation réseau/Open vSwitch et corruption mémoire potentielle.
-- **CVE-2026-97562** : use-after-free SMB/CIFS DFS pendant reconnexion/expiration d'automount.
-- **CVE-2026-98279** : récupération Btrfs et prévention de basculements durables en lecture seule.
-- Autres correctifs réseau, Btrfs et clés chiffrées dans le changelog officiel.
+La **Critical Patch Release du 12 octobre 2026** est toujours la plus récente identifiée. Les cibles par branche sont :
 
-Le changelog Proxmox ne fournit pas de score CVSS individuel pour ces CVE : ne pas leur attribuer une criticité numérique non vérifiée.
+| Branche | Version corrigée |
+|---|---|
+| 19.2 | **19.2.8** |
+| 19.3 | **19.3.5** |
+| 19.4 | **19.4.2** |
 
-**Action P1 :** valider `7.0.14-24-pve` sur un nœud pilote ; contrôler PCIe/AER, réseau, RTC, NVMe, RAID/stockage, KVM et redémarrage VM. Conserver un kernel antérieur fonctionnel et ne pas généraliser sans validation, particulièrement sur les hôtes ayant connu des kernel panics.
+**19.3.5**, et non 19.3.4, est la cible recommandée pour la branche 19.3 : GitLab a corrigé un dysfonctionnement des pages de merge requests avec l'intégration Ona.
 
-## Priorités opérationnelles
+### CVE prioritaires de la Critical Patch
 
-1. **P0 — GitLab** : confirmer la version déployée, patcher immédiatement les branches vulnérables vers 19.3.5 / 19.4.2 / 19.2.8, contrôler les intégrations CI/CD et les secrets.
-2. **P1 — Rocky** : terminer le passage à 687.56.1, reboot et validation.
-3. **P1 — Proxmox** : qualifier 7.0.14-24 sur pilote, maintenir un retour arrière bootable.
-4. **Veille** : suivre une éventuelle nouvelle patch release GitLab aujourd'hui ; aucune publication plus récente que le 12 octobre n'a été confirmée lors du contrôle.
+| CVE | CVSS | Risque / fonctionnalité | Vecteur et prérequis |
+|---|---:|---|---|
+| **CVE-2026-97229** | **10.0 Critical** | **RCE serveur, compilation regex de configuration CI/CD** | **AV:N / PR:N / UI:N**, faible complexité ; **sans authentification** |
+| **CVE-2026-92883** | **8.7 High** | XSS dans la coloration syntaxique des dépôts | Réseau, authentifié faible privilège, interaction victime requise |
+| **CVE-2026-16301** | **8.5 High** | **Auth bypass fonctionnel / contrôle d'accès CI/CD** : Developer peut déclencher des pipelines sur branches protégées | Réseau, rôle Developer, sans interaction |
+| **CVE-2026-14814** | **8.2 High** | Empoisonnement du cache de fichiers dépôt ; exécution de contenu inattendu par pipeline, **fuite possible de variables protégées** | Réseau, authentifié faible privilège, complexité élevée, sans interaction |
+| **CVE-2026-81839** | **7.7 High** | Pipelines avec privilèges du nouveau groupe après transfert | EE, authentifié, complexité élevée, interaction requise |
+| **CVE-2026-96893** | **7.3 High** | Injection d'instructions dans Duo Agent Platform | EE, authentifié, interaction requise |
+| **CVE-2026-101168** | **6.2 Medium** | **Exposition de tokens/secrets** dans logs GitLab Pages | Accès privilégié aux logs Pages requis, sans interaction |
+| **CVE-2026-7767** | **5.8 Medium** | **Fuite possible de tokens** via redirection proxy Kubernetes | Authentifié, contrôle d'un agent Kubernetes, complexité élevée, interaction requise |
+| **CVE-2026-16275 / 84284 / 85529** | **5.3 Medium** | **Lecture de données confidentielles GraphQL sans authentification** | Réseau, **PR:N / UI:N** |
 
-## Sources officielles et complémentaires
+**Versions affectées :** pour CVE-2026-97229, **19.2 avant 19.2.8**, **19.3 avant 19.3.5**, **19.4 avant 19.4.2**. Les bornes de début des autres CVE varient : par exemple CVE-2026-16301 depuis 18.7 et CVE-2026-101168 depuis 12.0, jusqu'aux mêmes correctifs sur les branches maintenues. Consulter l'avis officiel pour chaque plage précise.
 
-- GitLab, Critical Patch Release du 12 octobre : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-2-released/
-- GitLab, AI Gateway Critical Patch : https://docs.gitlab.com/releases/patches/other-patches/patch-release-gitlab-ai-gateway-19-4-1-released/
-- Rocky Linux 9 BaseOS x86_64, index des RPM kernel : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
-- Red Hat RHSA-2026:76739 : https://access.redhat.com/errata/RHSA-2026:76739
-- Red Hat CVE-2026-74516 : https://access.redhat.com/security/cve/cve-2026-74516
-- Red Hat CVE-2026-46317 : https://access.redhat.com/security/cve/cve-2026-46317
-- Red Hat CVE-2026-63994 : https://access.redhat.com/security/cve/cve-2026-63994
-- Red Hat CVE-2026-68432 : https://access.redhat.com/security/cve/cve-2026-68432
-- Proxmox no-subscription, index kernel 7.0 : https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/proxmox-kernel-7.0/
-- Proxmox no-subscription, index pve-manager : https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-manager/
-- Proxmox, changelog détaillé kernel : https://github.com/proxmox/pve-kernel/blob/master/debian/changelog
+**Action MCO P0 :** vérifier la version Omnibus effective, retirer un éventuel verrouillage DNF sur la version vulnérable, sauvegarder GitLab, puis mettre à jour immédiatement vers la version corrigée de la branche. Après mise à jour : vérifier l'accès web/SSH, les runners, les pipelines, les merge requests, les branches protégées et les journaux. Si exposition passée suspectée, examiner les journaux et envisager la rotation des secrets CI/CD.
+
+**Self-Hosted AI Gateway :** la CVE-2026-90970 (CVSS 9.9, RCE) concerne ce composant distinct de GitLab CE/EE ; appliquer la version AI Gateway corrigée si Duo Agent Platform auto-hébergé est utilisé. Aucun nouvel avis AI Gateway n'a été confirmé aujourd'hui.
+
+## 3. Proxmox VE 9 — stabilité et maintenance
+
+| Composant | Dernière version référencée dans les index no-subscription contrôlés |
+|---|---|
+| `pve-manager` | **9.2.21** (29 septembre) |
+| `proxmox-kernel-7.0` | **7.0.14-24** (10 octobre) |
+| `proxmox-kernel-signed-7.0` | **7.0.14+24** (10 octobre) |
+| `pve-qemu-kvm` | **11.1.1-2** (10 octobre) |
+
+Pas de nouvelle version de kernel 7.0 après `-24` dans l'index officiel vérifié. Les métadonnées ne remplacent pas un `apt policy` sur chaque hôte pour déterminer la version candidate exacte.
+
+**Points de vigilance :** les correctifs récents des kernels `-22` à `-24` concernent notamment les pilotes réseau, PCIe/NVMe, RTC, SMB/CIFS et Btrfs. Vu les kernel panics déjà rencontrés sur plusieurs hôtes, conserver un noyau précédent bootable et valider `-24` sur un nœud pilote avant déploiement en masse. Vérifier le stockage, les NIC Intel/Broadcom/Realtek, les erreurs PCIe/AER, le démarrage des VM et la stabilité KVM après reboot.
+
+**Action MCO P1 :** inventorier `pveversion -v`, `uname -r`, `apt policy proxmox-kernel-7.0 pve-manager pve-qemu-kvm` ; déployer en pilote, puis généraliser seulement après validation.
+
+## 4. Plan d'action
+
+1. **P0 GitLab :** corriger la RCE CI/CD non authentifiée CVE-2026-97229 en passant à 19.4.2, 19.3.5 ou 19.2.8.
+2. **P1 Rocky :** remplacer 687.56.1 par **687.57.1**, RHSA-2026:81552, et redémarrer après contrôle.
+3. **P1 Proxmox :** valider `7.0.14-24-pve` et `pve-qemu-kvm 11.1.1-2` sur pilote ; ne pas accélérer les changements sur les hôtes instables.
+
+## Sources
+
+- [Rocky Linux 9 BaseOS x86_64 — paquets kernel](https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/?C=M&O=D)
+- [Red Hat — RHSA-2026:81552](https://access.redhat.com/errata/RHSA-2026:81552)
+- [Red Hat — CVE-2026-68123 (Open vSwitch)](https://access.redhat.com/security/cve/cve-2026-68123)
+- [Red Hat — CVE-2026-72318 (CIFS/DFS)](https://access.redhat.com/security/cve/cve-2026-72318)
+- [Red Hat — CVE-2026-63925 (MACsec XPN)](https://access.redhat.com/security/cve/cve-2026-63925)
+- [Red Hat — CVE-2026-64507 (BPF JIT)](https://access.redhat.com/security/cve/cve-2026-64507)
+- [GitLab — Critical Patch Release du 12 octobre 2026](https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-2-released/)
+- [Proxmox — kernel 7.0 no-subscription](https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/proxmox-kernel-7.0/)
+- [Proxmox — kernel signé 7.0 no-subscription](https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/proxmox-kernel-signed-7.0/)
+- [Proxmox — pve-manager](https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-manager/)
+- [Proxmox — pve-qemu-kvm](https://metadata.cdn.proxmox.com/download/changelogs/pve/dists/trixie/pve-no-subscription/p/pve-qemu-kvm/)
