@@ -1,128 +1,91 @@
 ---
 type: mco-daily
-date: 2026-10-21
+date: 2026-10-22
 timezone: Europe/Paris
 status: action-required
 ---
 
-# Brief MCO défensif — mercredi 21 octobre 2026
-
-*Veille effectuée le 21 octobre au matin (Europe/Paris). Les éléments ci-dessous distinguent les nouveaux paquets, les avis récents et les correctifs encore non confirmés. Les scores CVSS ne sont indiqués que lorsqu'ils sont publiés par l'éditeur.*
+# Brief MCO — jeudi 22 octobre 2026
 
 ## Résumé exécutif
+- **P0 GitLab Self-Managed** : Critical Patch du 21 octobre, CVE-2026-110264 (CVSS 10.0), exécution de code à distance sans authentification ni interaction. Mettre à jour immédiatement.
+- **P0 Rocky Linux / RHEL 9** : PwnEscape (CVE-2026-99999) corrigée selon RHSA-2026:86033 ; kernel Rocky identifié : 5.14.0-687.59.1.el9_8.
+- **P1 Proxmox VE 9** : kernel 7.0.14-25-pve disponible ; six avis du 19 octobre corrigés dans qemu-server >= 9.2.11.
+- **P1 Nginx** : cinq vulnérabilités corrigées dans 1.30.6 et 1.31.7.
 
-- **P0 — GitLab CE/EE :** CVE-2026-97229 (**CVSS 10.0**), RCE serveur par CI/CD **sans authentification ni interaction**. Correctifs du 12/10 : **19.2.8 / 19.3.5 / 19.4.2** ; contrôler les versions réellement déployées.
-- **P0 — Proxmox :** **CVE-2026-99999 (PwnEscape)**, évasion de VM KVM vers l'hôte, corrigée dans **7.0.14-24-pve** (16/10). Un kernel **7.0.14-25-pve** apparaît dans le dépôt no-subscription au **20/10** ; ses corrections spécifiques/régressions ne sont pas établies ici.
-- **P1 — Proxmox :** six avis du **19/10** sur `qemu-server` (fuite de mot de passe cloud-init, contrôles d'accès, QGA/DoS, HMP), tous corrigés dans **qemu-server >= 9.2.11**.
-- **P1 — Rocky/RHEL 9 :** RHEL 9 reste **Affected** par PwnEscape, sans erratum correctif Red Hat indiqué au moment de la vérification. Dernier RPM kernel Rocky observé : **5.14.0-687.58.1.el9_8** (15/10).
-- **P1 — Nginx :** cinq CVE de sévérité éditeur « medium » corrigées dans **1.30.6 / 1.31.7** (14/10) ; comparer avec les correctifs backportés des distributions.
+## GitLab Self-Managed CE/EE — P0
+Critical Patch du 21 octobre 2026. Versions corrigées : 18.11.13, 19.0.10, 19.1.9, 19.2.9, 19.3.6, 19.4.3 et 19.5.1.
 
-## 1. Rocky Linux / RHEL 9
+| CVE | CVSS | Impact / prérequis |
+| --- | ---: | --- |
+| CVE-2026-110264 | 10.0 | RCE ; AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H ; aucune authentification ni interaction ; débordement d'entier lors de la compilation d'une expression régulière ; versions depuis 7.0 avant correctif adapté |
+| CVE-2026-15723 | 8.2 | Prise de contrôle de compte LDAP dans certaines configurations OmniAuth SAML / liaison LDAP |
+| CVE-2026-112212 | 7.5 | Empoisonnement de cache OAuth/OIDC sans authentification ; interaction ultérieure |
+| CVE-2026-12664 | 6.8 | Contournement des restrictions de token read_api |
+| CVE-2026-16255 | 5.9 | Contournement des restrictions d'appartenance SAML/LDAP (EE) |
+| CVE-2026-105777 | 4.3 | Exposition de credentials internes dans des en-têtes HTTP |
+| CVE-2026-13319 | 4.3 | Accès non autorisé à des métadonnées de projets privés |
 
-### Kernel et errata
+Les plages affectées et conditions exactes des autres CVE sont propres à chaque bulletin ; ne pas déduire qu'elles affectent toutes les branches depuis 7.0. L'ancienne CVE-2026-97229 (CVSS 10.0) concerne aussi la RCE CI/CD sans authentification ; vérifier sa correction.
 
-- Dernier paquet `kernel-core` observé dans le dépôt Rocky 9 x86_64 : **5.14.0-687.58.1.el9_8**, daté du **15 octobre 2026**. Pas de paquet plus récent confirmé dans l'index consulté.
-- **CVE-2026-99999 — PwnEscape** : Red Hat publie une sévérité **Critical**, **CVSS v3.1 8.8**, vecteur **AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H**. Un attaquant local ou une VM non fiable peut provoquer corruption mémoire via métadonnées de checksum réseau, avec **exécution de code hôte, fuite mémoire ou DoS**.
-- **RHEL 9 kernel : Affected**, sans erratum de correction listé. La présence du kernel Rocky `687.58.1` **ne prouve pas** la correction de cette CVE.
-- **Urgence P0** sur les hyperviseurs exécutant des VM non fiables ou mutualisées ; **P1** sur les autres systèmes exposés. Suivre le correctif de l'éditeur, ne pas annoncer de mitigation non validée.
-- Vérification défensive : `uname -r`, `rpm -q kernel-core`, `dnf updateinfo list --security`, `dnf updateinfo info --security`. Évaluer les backports via les errata, et non uniquement le numéro de version amont.
+**Urgence : P0**. Pour une instance en 19.3.2, cibler au minimum 19.3.6 après sauvegarde et contrôle de compatibilité des runners et pipelines.
 
-Sources :
-- Red Hat CVE : https://access.redhat.com/security/cve/cve-2026-99999
-- Rocky RPM : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
+Source officielle : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-1-released/
 
-## 2. Proxmox VE 9 et noyau PVE
+## Rocky Linux / RHEL 9 — P0
+PwnEscape, CVE-2026-99999 : CVSS Red Hat 8.8, CNA 9.3. Vecteur local depuis une charge ou VM contrôlée, privilèges faibles, aucune interaction. Correctif Red Hat RHSA-2026:86033 du 20 octobre ; kernel Rocky identifié dans les dépôts officiels le 21 octobre : **5.14.0-687.59.1.el9_8**.
 
-### P0 — PwnEscape, CVE-2026-99999
-
-- **PSA-2026-00068-1**, daté du **16 octobre** : évasion d'une VM KVM par défaut de validation des métadonnées checksum du réseau virtio ; fuite/écriture mémoire du kernel hôte.
-- **Corrigé dans : `proxmox-kernel-7.0.14-24-pve(-signed)`**. Accès préalable à une VM/charge invitée requis ; aucune interaction utilisateur. CVSS Red Hat 8.8 sur RHEL, **ne pas transposer ce score automatiquement à Proxmox**.
-- **Nouveauté paquet :** `proxmox-kernel-7.0.14-25-pve` et variante signée observés dans un miroir du dépôt **pve-no-subscription** avec date de fichier **20 octobre 2026**. La nature exacte des changements et les éventuelles régressions du `-25` ne sont **pas confirmées** dans cette collecte.
-- **Action P0 :** garantir au minimum le correctif `-24` effectivement démarré ; tester `-25` sur hôte non critique avant généralisation, puis surveiller NIC/virtio, KVM, stockage et journaux kernel. Contrôles : `pveversion -v`, `uname -r`, `apt policy proxmox-kernel-7.0.14-25-pve`.
-
-### P1 — Six avis qemu-server du 19 octobre
-
-| Avis | Impact / prérequis | Version corrigée |
-| --- | --- | --- |
-| PSA-2026-00069-1 | **Fuite du mot de passe cloud-init** `cipassword` dans la configuration de snapshot accessible selon les permissions API | `qemu-server >= 9.2.11` |
-| PSA-2026-00070-1 | **Lecture de snippets** sur stockages non autorisés ; `VM.Config.Cloudinit`, droit de démarrer et accès invité | idem |
-| PSA-2026-00071-1 | **Contournement des privilèges cloud-init** ; `VM.Config.Network` suffit à modifier des paramètres d'authentification invités | idem |
-| PSA-2026-00072-1 | Consommation mémoire excessive de l'hôte via réponses QEMU Guest Agent ; agent invité contrôlé | idem |
-| PSA-2026-00073-1 | **DoS de pvedaemon** par épuisement mémoire via QGA file-read ; agent invité malveillant | idem |
-| PSA-2026-00074-1 | **Fuite potentielle d'informations mémoire** via QEMU HMP ; `Sys.Modify` au lieu d'une restriction root | idem |
-
-Ces avis ne publient pas de CVE ni de CVSS chiffré dans le bulletin consulté. Ne pas en inventer. Les risques touchent surtout les environnements multi-utilisateurs, les VM non fiables et les accès API délégués. **Action P1 :** mettre à jour `qemu-server` sur les hôtes concernés et auditer les rôles, tokens, snapshots et snippets.
+Vérifier les errata effectivement appliqués, mettre à jour les hôtes concernés, redémarrer et contrôler uname -r, modules tiers, réseau et journaux. Ne pas confondre présence du paquet et noyau démarré.
 
 Sources :
-- Proxmox PSA 00069–00071 : https://forum.proxmox.com/threads/proxmox-virtual-environment-security-advisories.149331/page-4
-- Proxmox PSA 00072–00074 : https://forum.proxmox.com/threads/proxmox-virtual-environment-security-advisories.149331/page-5
-- Miroir no-subscription (version `-25`) : https://mirror.itp.uni-frankfurt.de/proxmox-ve/dists/trixie/pve-no-subscription/binary-amd64/
+- https://access.redhat.com/errata/RHSA-2026:86033
+- https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
 
-## 3. GitLab Self-Managed CE/EE
+## Proxmox VE 9 — P1
+Kernel **7.0.14-25-pve** observé dans no-subscription le 20 octobre ; correctif PwnEscape présent dès **7.0.14-24-pve**. Les régressions spécifiques au -25 ne sont pas confirmées.
 
-Dernière **Critical Patch Release** officiellement confirmée : **12 octobre 2026**, versions **19.4.2, 19.3.5 et 19.2.8**. Version fonctionnelle **19.5.0** publiée le **15 octobre** ; ne pas la confondre avec une nouvelle Critical Patch. Aucun bulletin ultérieur confirmé au moment de la collecte.
+Six avis du 19 octobre (PSA-2026-00069 à PSA-2026-00074), corrigés par **qemu-server >= 9.2.11** :
+- 00069 : divulgation du mot de passe cloud-init dans une configuration de snapshot.
+- 00070 : lecture de snippets sur stockage non autorisé (privilèges VM.Config.Cloudinit, droit de démarrer une VM et accès invité).
+- 00071 : contournement de permissions cloud-init avec VM.Config.Network.
+- 00072 : réponses QEMU Guest Agent sans limites de taille, épuisement mémoire hôte.
+- 00073 : lecture via QEMU Guest Agent pouvant épuiser la mémoire de pvedaemon.
+- 00074 : contrôles de privilèges insuffisants pour QEMU HMP, divulgation potentielle d'informations mémoire.
 
-| CVE | CVSS | Vecteur, authentification, interaction et impact | Plages affectées (branches concernées) |
-| --- | ---: | --- | --- |
-| **CVE-2026-97229** | **10.0** | **RCE serveur CI/CD**, réseau, **sans authentification**, **sans interaction**, intégrité/confidentialité/disponibilité élevées | 19.2 <19.2.8 ; 19.3 <19.3.5 ; 19.4 <19.4.2 |
-| CVE-2026-92883 | 8.7 | XSS via syntax highlighting ; authentifié, privilèges faibles, interaction de la victime | depuis 19.1, corrigée en 19.2.8/19.3.5/19.4.2 |
-| **CVE-2026-16301** | **8.5** | **Contournement d'autorisation CI/CD**, pipelines de branches protégées ; rôle Developer, pas d'interaction | depuis 18.7, mêmes versions correctives |
-| **CVE-2026-14814** | **8.2** | Empoisonnement du cache de fichiers de dépôt, exécution de contenu CI/CD et **fuite potentielle de variables protégées** ; authentifié, sans interaction, complexité élevée | versions antérieures à 19.2.8, 19.3 <19.3.5, 19.4 <19.4.2 |
-| CVE-2026-81839 | 7.7 | Pipelines avec privilèges indus après transfert de projet ; EE, authentifié, interaction | depuis 18.1, mêmes correctifs |
-| CVE-2026-96893 | 7.3 | Injection d'instructions Duo Agent ; EE, authentifié, interaction | depuis 19.1, mêmes correctifs |
-| **CVE-2026-101168** | **6.2** | **Fuite de tokens/secrets** dans logs GitLab Pages ; accès authentifié et privilégié aux logs, pas d'interaction | depuis 12.0, mêmes correctifs |
-| CVE-2026-7767 | 5.8 | Redirection et fuite de tokens Kubernetes Agent ; agent contrôlé, authentification et interaction | depuis 13.11, mêmes correctifs |
-| **CVE-2026-16275 / 84284 / 85529** | **5.3 chacune** | **Lecture GraphQL de notes/données confidentielles sans authentification ni interaction** | plages distinctes selon CVE, consulter le bulletin |
+CVSS individuels non confirmés. Vérifier versions des paquets, privilèges délégués et impacts sur VM avant redémarrage.
 
-**Action P0 :** si une instance Omnibus est encore en `19.3.2`, installer au minimum `19.3.5` (ou une version plus récente validée), après sauvegarde et contrôle des contraintes de mise à niveau. Tester runners, pipelines, merge requests, secrets et GitLab Pages. Vérifier l'éventuel `versionlock` DNF.
+Source : https://pve.proxmox.com/wiki/Security_Advisories
 
-Source officielle : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-2-released/
-Version 19.5 : https://about.gitlab.com/whats-new/
+## OpenSSH
+Version amont **10.6p1**, publiée le 6 octobre. Correctifs concernant SFTP, GSSAPI et compression SSH. Pas de nouvelle CVE datée du 21/22 octobre confirmée dans cette collecte. Sur Rocky/RHEL, privilégier la vérification des errata backportés et des paquets installés ; contrôler exposition SSH et authentification.
 
-## 4. OpenSSH
+Source : https://www.openssh.com/security.html
 
-- Dernière release amont identifiée : **OpenSSH 10.6 / 10.6p1, 6 octobre 2026**.
-- Correctifs de sécurité annoncés : validation renforcée des chemins renvoyés par un serveur SFTP (risque d'écriture hors destination lors d'une copie récursive), corrections de gestion d'état et de conservation d'identifiants GSSAPI, durcissements SSH.
-- **Pré-requis** : utilisation des fonctionnalités concernées (notamment SFTP/GSSAPI). Pas de nouvelle CVE chiffrée ni de CVSS du 21 octobre confirmés.
-- **Régression/compatibilité** : compression potentiellement moins efficace ; validation plus stricte de certains noms d'utilisateur ; avertissement de dépréciation de `scp -R`.
-- **Action P1/P2 :** vérifier les errata OpenSSH du fournisseur RHEL/Rocky plutôt que comparer mécaniquement les versions amont. Tester transferts SFTP, GSSAPI, clés et configuration `sshd`.
-
-Sources : https://www.openssh.org/releasenotes.html et https://www.openssh.org/security.html
-
-## 5. Nginx
-
-Les versions **1.30.6 (stable)** et **1.31.7 (mainline)** corrigent cinq CVE annoncées mi-octobre ; **sévérité éditeur « medium »** pour chacune. Aucun CVSS chiffré officiel n'est indiqué dans la page d'avis consultée.
-
-| CVE | Impact | Versions amont non vulnérables |
+## Nginx — P1
+Versions corrigées : **1.30.6** et **1.31.7** (14 octobre).
+| CVE | Impact | Gravité officielle |
 | --- | --- | --- |
-| CVE-2026-15176 | Dépassement de tampon, `alias` + `rewrite` | 1.30.6+, 1.31.7+ |
-| CVE-2026-93479 | Dépassement de tampon, évaluation de scripts | idem |
-| **CVE-2026-95101** | **Injection de corps de requête HTTP/3** ; HTTP/3 requis | idem |
-| **CVE-2026-97629** | **Falsification de session TLS** avec session tickets | idem |
-| CVE-2026-97205 | Use-after-free avec AIO | idem |
+| CVE-2026-15176 | Débordement mémoire avec alias et rewrite | Medium |
+| CVE-2026-93479 | Débordement mémoire lors de l'évaluation de scripts | Medium |
+| CVE-2026-95101 | Injection de corps de requête HTTP/3 | Medium |
+| CVE-2026-97629 | Falsification de session TLS | Medium |
+| CVE-2026-97205 | Use-after-free avec AIO | Medium |
 
-Les plages vulnérables diffèrent selon les CVE et remontent parfois à d'anciennes versions : consulter le tableau officiel. Les avis ne confirment pas une RCE exploitable sans authentification pour chacune de ces failles ; ne pas la présumer.
-
-**Action P1 :** contrôler `nginx -v`, `nginx -V`, les modules actifs et la provenance du paquet ; pour Rocky/RHEL vérifier les backports. Tester `nginx -t` et la compatibilité reverse proxy/TLS/HTTP/3 avant mise à jour.
+CVSS individuels et conditions d'exploitation détaillées non tous confirmés. Vérifier modules et directives effectivement activés, ainsi que les correctifs backportés par la distribution.
 
 Source : https://nginx.org/en/security_advisories.html
 
-## 6. MariaDB
+## MariaDB
+Branche LTS 10.11 : version de maintenance identifiée **10.11.19** (août 2026). CVE documentées corrigées dans cette version : CVE-2026-92262 (CVSS 9.9), CVE-2026-85746 (9.9), CVE-2026-97380 (8.8), CVE-2026-107815 (8.5), CVE-2026-107818 (8.4). Conditions d'exploitation, privilèges, interaction et fonctionnalités exactes à confirmer dans les avis individuels ; ne pas conclure à une RCE accessible depuis le réseau sans analyse des prérequis.
 
-- Pour la branche **10.11 LTS**, dernière maintenance officielle identifiée : **10.11.19**, annoncée le **24 août 2026** (la MariaDB Foundation indique une date de build du 21 août). Maintenance de la branche prévue jusqu'en février 2028.
-- Corrections de stabilité pertinentes : courses InnoDB, crashs possibles lors de la récupération et du redimensionnement du buffer pool ; correctifs du moteur CONNECT (validation des données distantes, paramètres transmis à curl, restrictions d'accès aux fichiers).
-- Aucune **nouvelle CVE du 21 octobre**, aucun CVSS ou correctif de sécurité supplémentaire pour 10.11 confirmé dans les sources officielles consultées. Ne pas assimiler les tickets MDEV à des CVE.
-- **Action P1/P2 :** comparer `SELECT VERSION();` aux paquets disponibles, contrôler l'usage du moteur CONNECT, tester sauvegarde/restauration, réplication, Galera et migration sur préproduction avant mise à jour.
+Vérifier la version effective du serveur, l'origine des RPM et les correctifs rétroportés. Pas de nouvelle CVE datée du 22 octobre confirmée.
 
-Sources :
-- https://mariadb.com/docs/release-notes/community-server/10.11/10.11.19
-- https://mariadb.com/resources/blog/mariadb-community-server-q3-2026-maintenance-releases/
+Source : https://mariadb.com/kb/en/security/
 
-## Priorités d'exécution
+## Actions prioritaires
+1. Patcher GitLab Self-Managed contre CVE-2026-110264 ; surveiller aussi CI/CD et fuite de secrets.
+2. Appliquer le kernel corrigé Rocky/RHEL 9 aux hôtes exposés et vérifier le redémarrage.
+3. Contrôler qemu-server >= 9.2.11 et kernel Proxmox sur chaque nœud.
+4. Vérifier les versions et errata Nginx, OpenSSH et MariaDB, avec attention aux backports.
 
-1. **P0 :** corriger les instances GitLab exposées encore vulnérables à CVE-2026-97229 et vérifier les hyperviseurs Proxmox face à PwnEscape.
-2. **P1 :** appliquer `qemu-server >= 9.2.11` sur Proxmox ; suivre la correction Red Hat/Rocky de PwnEscape.
-3. **P1 :** traiter les cinq CVE Nginx selon l'exposition réelle et les backports.
-4. **P2 :** vérifier OpenSSH 10.6p1 et MariaDB 10.11.19 dans les dépôts adaptés à chaque système.
-
-*Fin du rapport. Aucune instruction offensive ; aucun correctif, score CVSS ou régression non confirmé n'est présenté comme acquis.*
+Rapport défensif : aucune procédure d'exploitation.
