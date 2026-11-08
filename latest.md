@@ -1,7 +1,7 @@
 ---
 type: mco-daily
-date: 2026-11-07
-generated_at: 2026-11-07T07:58:26+01:00
+date: 2026-11-08
+generated_at: 2026-11-08T08:03:12+01:00
 timezone: Europe/Paris
 status: warning
 critical_cve: 0
@@ -11,49 +11,38 @@ proxmox_major: "9.2"
 proxmox_pve_manager_latest: "9.2.24"
 ---
 
-# Brief MCO défensif — samedi 7 novembre 2026
+# Brief MCO défensif — dimanche 8 novembre 2026
 
 ## Résumé exécutif
-- **Nouveau Rocky Linux 9 :** le dépôt officiel BaseOS x86_64 propose le kernel **5.14.0-687.66.1.el9_8**, daté du **5 novembre 2026 à 21:26 UTC**, après 687.65.1. Qualifier et planifier le redémarrage.
-- **GitLab Self-Managed :** vérifier sans délai les correctifs de sécurité serveur et Runner, ainsi que les certificats dans les images CI/CD. Aucun nouvel avis du 7 novembre confirmé pendant cette collecte.
-- **Proxmox VE :** versions de référence historiques pve-manager 9.2.24 et kernel 7.0.14-26-pve ; **pas de revalidation du dernier paquet ce matin**. Vérifier indépendamment les versions installées et démarrées.
-- **OpenSSH, Nginx, MariaDB :** contrôler les avis officiels, les versions déployées et les backports de distribution.
+- **Rocky Linux 9 :** dernier kernel observé dans BaseOS x86_64 : **5.14.0-687.66.1.el9_8** (5 novembre 2026, 21:26 UTC). Aucun kernel plus récent confirmé.
+- **GitLab CE/EE :** correctifs 19.5.3/19.4.5/19.3.7 publiés le 29 octobre ; le bulletin précise **qu'il ne contient pas de correctifs de sécurité**, contrairement à une interprétation précédente. Il inclut néanmoins la défiance des certificats eMudhra compromis.
+- **Proxmox VE :** référence suivie 9.2, pve-manager 9.2.24 et kernel 7.0.14-26-pve (références historiques, dernières versions non reconfirmées). Un patch Proxmox du 3 novembre mentionne 9.2.25 pour la compatibilité des notifications de clusters mixtes : ce n'est pas une preuve de disponibilité du paquet.
+- **Nginx :** quatre avis CVE officiels affectant certaines versions, corrigés en 1.30.6+ ou 1.31.7+.
+- **OpenSSH / MariaDB :** pas de nouvelle version ou CVE confirmée lors de cette collecte ciblée.
 
-## Méthode de classement et limites
-Les compteurs du front matter recensent **uniquement les nouvelles CVE distinctes dont le score a été confirmé lors de cette collecte du 7 novembre** : critique CVSS >= 9.0, importante 7.0 <= CVSS < 9.0 ; une CVE commune à plusieurs produits ne compte qu'une fois. **0/0 ne signifie pas absence de vulnérabilités dans le parc** : le registre historique précédent indiquait 5 critiques et 18 importantes, sans revalidation individuelle aujourd'hui. Les anciennes alertes restent ouvertes jusqu'à vérification des versions déployées. Ne pas interpréter les références historiques comme des dernières versions vérifiées.
+## Méthode et limites
+Les compteurs **0 critique / 0 importante** désignent exclusivement les **nouvelles CVE distinctes avec score CVSS vérifié dans cette collecte du 8 novembre**, pas l'ensemble des risques connus. Seuils : critique CVSS >= 9.0 ; importante 7.0 <= CVSS < 9.0. Une CVE affectant plusieurs produits est comptée une seule fois. Les alertes antérieures ne sont pas déclarées résolues. Les vecteurs AV/AC/PR/UI, fonctionnalités, versions affectées et corrigées ne sont indiqués que lorsqu'ils sont confirmés dans un avis officiel ; sinon ils demeurent indéterminés.
 
 ## Rocky Linux / RHEL 9
-**Version vérifiée :** kernel et kernel-core `5.14.0-687.66.1.el9_8.x86_64`, datés du 5 novembre 2026, 21:26:24 UTC, dans BaseOS x86_64. L'erratum spécifique à cette révision et les CVE corrigées n'ont pas été vérifiés ; ne pas leur attribuer de score ou d'impact sans bulletin officiel.
-Source officielle : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
-RHEL : vérifier les errata de Red Hat sur https://access.redhat.com/errata/ ; la correspondance exacte avec la révision Rocky 687.66.1 n'a pas été établie.
-**Action :** `dnf updateinfo list security`, `dnf check-update kernel\*`, vérifier /boot, sauvegardes et compatibilité modules, puis contrôler `uname -r` après redémarrage.
-**Alerte historique à confirmer :** CVE-2026-98432 (CVSS 9.8 dans le suivi antérieur), scénario réseau TCP IPv4 sans authentification, risque de DoS/corruption mémoire et RCE sous conditions. Vérifier son statut précis dans les bulletins officiels et la version installée avant de conclure à une exposition.
+La version `kernel-5.14.0-687.66.1.el9_8.x86_64` et `kernel-core` sont présentes dans le dépôt officiel Rocky BaseOS. Date du paquet : 5 novembre 2026. L'erratum propre à cette révision, les CVE corrigées et une éventuelle régression ne sont pas confirmés. Vérifier `dnf updateinfo list security`, `dnf check-update 'kernel*'`, l'espace /boot, les modules tiers et `uname -r` après reboot.
+Source : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/?C=M&O=D
+Pour RHEL : https://access.redhat.com/errata/
+L'alerte historique CVE-2026-98432 (risque réseau TCP IPv4 sans authentification, score 9.8 précédemment rapporté) nécessite une vérification individuelle du bulletin et des paquets avant conclusion.
 
 ## Proxmox VE
-Version majeure suivie : **9.2**. Dernier `pve-manager` historiquement vérifié : **9.2.24**. Kernel historiquement suivi : **7.0.14-26-pve**. Ces références ne sont **pas reconfirmées comme dernières disponibles** le 7 novembre. Le kernel est un paquet distinct de `pve-manager`; vérifier `pveversion -v`, `uname -r`, `apt policy pve-manager proxmox-kernel-7.0` et les avis PSA. Vérifier les risques de régression ZFS, KVM, réseau, LXC et sauvegarde avant reboot.
-Source : https://www.proxmox.com/en/about/company-details/press-releases et https://forum.proxmox.com/
+Références historiques : Proxmox VE 9.2 ; `pve-manager 9.2.24` ; kernel `7.0.14-26-pve`. **Dernières versions non vérifiées ce jour.** Le kernel et pve-manager sont des composants distincts. Contrôler `pveversion -v`, `uname -r`, `apt policy pve-manager` et les paquets proxmox-kernel. Les PSA précédemment suivis 00075–00080 demandent une vérification individuelle. Tester ZFS, KVM, LXC, réseau et sauvegardes avant redémarrage. Un patch daté du 3 novembre évoque un garde-fou pour les matchers de notifications dans des clusters aux versions hétérogènes (seuil 9.2.25) ; publication du paquet non établie.
+Source : https://lore.proxmox.com/pve-devel/20261103104859.172466-40-l.wagner%40proxmox.com/
 
-## GitLab Self-Managed CE/EE et CI/CD
-Versions correctives **historiques** suivies : GitLab 19.5.3, 19.4.5, 19.3.7 ; GitLab Runner 19.5.1. **Non reconfirmées comme dernières versions aujourd'hui.** Vérifier les patch releases et les notes de sécurité officielles.
-Alertes historiques nécessitant validation des bulletins : CVE-2026-110264 et CVE-2026-97229 (RCE sans authentification, scores 10.0 historiquement suivis), et CVE-2026-111943 (certificats eMudhra compromis, score non confirmé). Pour chaque CVE, les branches affectées/corrigées, vecteur, privilèges, interaction et fonctionnalité ne sont pas tous revalidés dans cette collecte : **ne pas extrapoler**. Priorité opérationnelle élevée aux risques RCE, auth bypass, secrets/tokens et pipelines CI/CD. Mettre à jour serveur, Runner et images de build séparément.
-Sources : https://about.gitlab.com/releases/ et https://docs.gitlab.com/releases/patches/
+## GitLab Self-Managed CE/EE, Runner, CI/CD
+Bulletin officiel du **29 octobre 2026** : GitLab CE/EE **19.5.3, 19.4.5, 19.3.7, 19.2.10, 19.1.10, 19.0.11 et 18.11.14** ; le bulletin affirme explicitement **« does not include any security fixes »**. Il liste néanmoins une modification de confiance CA eMudhra, à vérifier dans GitLab, Runner et images CI/CD. Ne pas présenter ces versions comme les dernières aujourd'hui. Le Runner 19.5.1 est une référence historique non reconfirmée.
+Les alertes historiques CVE-2026-110264 et CVE-2026-97229, précédemment qualifiées de RCE sans authentification CVSS 10.0, ne sont **pas individuellement revalidées aujourd'hui** ; ne pas en déduire les versions affectées, vecteurs ou remédiations sans avis officiel. Vérifier les patch releases de sécurité et l'exposition de l'instance, les tokens/secrets, pipelines et permissions des runners.
+Source : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-3-released/
 
-## OpenSSH
-Aucun nouveau bulletin daté du 7 novembre confirmé. Vérifier la version packagée et les backports plutôt que comparer seulement le numéro upstream ; surveiller auth bypass, RCE et élévation de privilèges. Source : https://www.openssh.com/security.html
-
-## Nginx
-L'avis officiel confirme quatre CVE de sévérité **medium** : CVE-2026-15176, CVE-2026-93479, CVE-2026-95101 et CVE-2026-97629, corrigées dans les branches **1.30.6+** et **1.31.7+** selon les configurations concernées. Ne pas assimiler « medium » à un CVSS >= 7 sans score individuel vérifié. Vérifier les versions et modules HTTP/3, AIO, TLS tickets, alias/rewrite.
+## Nginx, OpenSSH, MariaDB
+Nginx : avis officiels **CVE-2026-15176** (alias/rewrite), **CVE-2026-93479** (évaluation de script), **CVE-2026-95101** (HTTP/3), **CVE-2026-97629** (tickets de session TLS), tous classés **medium par nginx** ; versions non vulnérables indiquées **1.30.6+ et 1.31.7+**. Les scores CVSS, vecteurs détaillés, prérequis et impacts exacts n'ont pas été vérifiés individuellement ; aucune de ces CVE n'est comptée comme nouvelle critique/importante. Vérifier les fonctionnalités activées et les backports.
 Source : https://nginx.org/en/security_advisories.html
+OpenSSH : aucune nouvelle version ou CVE confirmée dans cette collecte ; contrôler les bulletins et les backports de distribution. Source : https://www.openssh.com/security.html
+MariaDB : aucune nouvelle version ou CVE confirmée dans cette collecte ; vérifier la branche 10.11 et les bulletins de sécurité, les paquets RPM et l'exposition réseau. Source : https://mariadb.org/about/security-policy/
 
-## MariaDB
-Aucune nouvelle release ou CVE du 7 novembre confirmée. La référence historique 10.11.19 n'est pas revalidée comme dernière version. Vérifier les notes de sécurité et les paquets du dépôt actif, en particulier la branche 10.11 LTS.
-Source : https://mariadb.com/kb/en/security/
-
-## Actions MCO prioritaires
-1. Qualifier le nouveau kernel Rocky 687.66.1, contrôler /boot et les modules tiers, puis redémarrer avec fenêtre de maintenance.
-2. Auditer GitLab et chaque Runner séparément ; inventorier les images CI/CD et les CA embarquées.
-3. Vérifier les versions effectives Proxmox, notamment kernel démarré vs pve-manager installé.
-4. Comparer OpenSSH, Nginx et MariaDB aux avis officiels et aux errata RPM.
-
-## Transparence
-Collecte partielle : les dernières versions Proxmox/GitLab/MariaDB/OpenSSH et les scores individuels des CVE historiques ne sont pas revalidés ce matin. Les compteurs 0/0 sont ceux des nouvelles CVE **confirmées pendant cette collecte**, pas un bilan global de sécurité.
+## Priorités d'exploitation
+Comparer les versions **installées et actives** aux versions corrigées officielles ; qualifier les mises à jour Rocky et Proxmox avant reboot ; contrôler les correctifs GitLab/Runner et les chaînes de confiance CI/CD. Aucun test offensif.
