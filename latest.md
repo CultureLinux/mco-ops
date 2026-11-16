@@ -1,9 +1,9 @@
 ---
 type: mco-daily
-date: 2026-11-15
-generated_at: 2026-11-15T08:04:44+01:00
+date: 2026-11-16
+generated_at: 2026-11-16T08:03:40+01:00
 timezone: Europe/Paris
-status: critical
+status: warning
 critical_cve: 0
 important_cve: 0
 rocky_kernel_latest: "5.14.0-687.66.1.el9_8"
@@ -11,58 +11,40 @@ proxmox_major: "9.2"
 proxmox_pve_manager_latest: "9.2.26"
 ---
 
-# Brief MCO défensif — dimanche 15 novembre 2026
+# Brief MCO défensif — lundi 16 novembre 2026
 
 ## Résumé exécutif
 
-- **P0 GitLab :** nouvelle information importante par rapport au brief du 14 novembre : GitLab CE/EE **19.5.5 et 19.4.7**, publiés le **12 novembre**, corrigent des bugs et régressions, **sans nouveau correctif de sécurité**. Ils succèdent aux correctifs critiques 19.5.4/19.4.6 du 10 novembre. La branche 19.3 reste suivie à 19.3.8 dans les bulletins consultés.
-- **P0 OpenSSH :** CVE-2026-123158, contournement d'authentification dans certaines configurations Linux **musl sans PAM**, corrigé par OpenSSH 10.6p2 ; contrôler les systèmes concernés et les backports. L'avis CERT-FR date des 5–6 novembre.
-- **P1 Rocky Linux 9 :** dernier kernel BaseOS x86_64 vérifié **5.14.0-687.66.1.el9_8** (5 novembre).
-- **P1 Proxmox VE 9.2 :** dernière version de pve-manager vérifiée dans le suivi des dépôts **9.2.26** ; le dernier kernel Proxmox publié n'est pas établi, et doit être contrôlé séparément.
-- **P1 Nginx :** six CVE de gravité moyenne et correctifs officiels connus ; **MariaDB :** pas de nouvelle alerte critique confirmée.
+- **P0 GitLab Self-Managed CE/EE :** appliquer la Critical Patch Release du 10 novembre (19.5.4 / 19.4.6 / 19.3.8 au minimum selon la branche), notamment pour CVE-2026-105437, risque d'exécution de commandes dans Gitaly. Les versions 19.5.5 et 19.4.7 du 12 novembre corrigent des régressions et héritent des correctifs de leur branche ; cette dernière publication n'ajoute pas de correctif de sécurité.
+- **P1 Rocky Linux/RHEL 9 :** dernier kernel Rocky BaseOS x86_64 vérifié 5.14.0-687.66.1.el9_8 (paquet daté du 5 novembre). Erratum RHSA et CVE spécifiques non établis dans cette collecte.
+- **P1 Proxmox VE :** version majeure suivie 9.2 ; pve-manager 9.2.26 dernière version précédemment vérifiée, non reconfirmée aujourd'hui ; version du dernier kernel Proxmox non vérifiable et **distincte de pve-manager**.
+- **P1 OpenSSH/Nginx :** suivre CVE-2026-123158 (OpenSSH, conditions musl sans PAM selon le suivi CERT-FR) et les six CVE moyennes de Nginx. Vérifier les backports des distributions.
+- **P2 MariaDB :** 10.11.19 LTS est la version 10.11 publiée référencée par la Fondation ; aucune nouvelle alerte CVE importante confirmée dans la collecte.
 
-## GitLab Self-Managed CE/EE
+## GitLab CE/EE, Gitaly et CI/CD
 
-**Publication du 12 novembre 2026 : 19.5.5 et 19.4.7.** L'éditeur indique explicitement qu'il s'agit de corrections de régressions et de bugs **sans correctifs de sécurité**. Ces versions incluent GitLab Orbit (désactivé par défaut) et des migrations de base de données. Sur instance unique, l'éditeur prévient d'une interruption de service pendant les migrations. En cas d'activation d'Orbit sur 19.4.7, ne pas migrer vers une 19.5 antérieure à 19.5.5.
+**CVE-2026-105437 — urgence P0 opérationnelle.** Le bulletin officiel GitLab du 10 novembre décrit un débordement de tampon heap dans Git embarqué, pouvant sous conditions permettre l'exécution de commandes dans l'environnement Gitaly. Versions affectées : CE/EE à partir de 16.2 avant 19.3.8, branche 19.4 avant 19.4.6, branche 19.5 avant 19.5.4. Correctifs : 19.3.8 / 19.4.6 / 19.5.4 et versions ultérieures correspondantes. Le suivi antérieur donne CVSS 7.5, AV:N/AC:H/PR:N/UI:R : réseau, complexité élevée, aucun privilège, interaction utilisateur requise ; **ne pas assimiler à une RCE sans interaction**. Le bulletin GitLab qualifie néanmoins la correction de « Critical ». Les installations compilées depuis les sources doivent également reconstruire Git/Gitaly, ou utiliser un Git corrigé. Source : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-4-released/
 
-Source : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-5-released/
+**Publication du 12 novembre :** GitLab 19.5.5 / 19.4.7, correctifs de bugs et régressions, aucun nouveau correctif de sécurité. Migrations de base de données ; prévoir une interruption sur instance mononœud. GitLab Orbit est désactivé par défaut. Source : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-5-released/
 
-**Rappel sécurité P0 du 10 novembre : CVE-2026-105437.** Débordement de tampon dans Git embarqué pouvant entraîner l'exécution de commandes dans Gitaly sous certaines conditions ; score CVSS v3.1 **7.5**, vecteur AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H selon la référence de sécurité déjà validée : réseau, complexité élevée, sans privilèges, **interaction utilisateur requise**. Versions corrigées : 19.3.8, 19.4.6, 19.5.4, ou versions ultérieures de la même branche. Les 19.5.5 et 19.4.7 intègrent donc les corrections de leur branche. Ne pas décrire cette vulnérabilité comme une RCE sans interaction. Vérifier la version installée et les installations compilées depuis les sources.
-
-Source : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-4-released/
-
-**Chaîne de confiance CI/CD : CVE-2026-111943** (certificats intermédiaires eMudhra compromis). Les correctifs GitLab du 29 octobre incluent 19.5.3/19.4.5/19.3.7 ; mettre à jour séparément GitLab Runner vers **19.5.1** ou version corrigée ultérieure et reconstruire les images CI/CD dotées de leur propre magasin de CA. AI Gateway possède aussi ses propres versions correctives. Aucun nouveau contournement d'authentification ou vol de tokens GitLab n'est confirmé aujourd'hui.
-
-Source : https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-3-released/
-
-## OpenSSH
-
-**CVE-2026-123158 : contournement d'authentification.** L'avis CERT-FR du 5 novembre, actualisé le 6 novembre, indique les versions OpenSSH antérieures à **10.6p2**. Le scénario particulièrement concerné est sshd sous Linux musl, sans PAM, avec authentification par mot de passe et configuration de comptes spécifique (notamment Alpine Linux) ; il ne faut pas considérer toutes les installations Rocky/RHEL utilisant PAM comme vulnérables sans analyse de configuration et de paquet. Priorité élevée aux hôtes exposés concernés. Score CVSS non retenu dans les compteurs de ce jour faute de validation univoque dans les sources primaires consultées. Vérifier les correctifs rétroportés des distributions.
-
-Sources : https://cert.cyber.gouv.fr/avis/CERTFR-2026-AVI-1468/ ; https://www.openssh.com/txt/release-10.6p2
+**Chaîne CI/CD et certificats :** suivre séparément la correction antérieure CVE-2026-111943 relative aux certificats eMudhra compromis, les versions GitLab Runner et les magasins CA propres aux images CI/CD. Le niveau de risque précis et les versions Runner les plus récentes n'ont pas été revalidés ce matin. Aucune nouvelle fuite de tokens/secrets, auth bypass ou RCE sans authentification n'est confirmée dans cette collecte ; cela ne constitue pas une attestation d'absence.
 
 ## Rocky Linux / RHEL 9
 
-Le dépôt officiel Rocky Linux 9 BaseOS x86_64 affiche **kernel et kernel-core 5.14.0-687.66.1.el9_8**, datés du **5 novembre 2026**, sans version ultérieure identifiée dans l'index vérifié. L'erratum Red Hat spécifique et les CVE de cette révision ne sont pas suffisamment établis ici. Contrôler `dnf updateinfo list security`, les correctifs réellement installés, l'espace /boot et le kernel démarré après redémarrage. Ne pas assimiler le numéro upstream Linux aux backports RHEL.
-
-Source : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/?C=M&O=D
+Le dépôt Rocky officiel BaseOS x86_64 présente kernel et kernel-core **5.14.0-687.66.1.el9_8**, datés du 5 novembre 2026. Aucun kernel plus récent n'a été trouvé dans l'index consulté. La correspondance exacte avec les errata Red Hat, les CVE corrigées, leur CVSS et les éventuelles régressions n'a pas été établie ; ne pas attribuer des CVE à cette révision sans erratum. Contrôler `dnf updateinfo list --security`, `dnf check-update`, `uname -r`, `rpm -q kernel-core` et l'espace `/boot` avant redémarrage. Source : https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/
 
 ## Proxmox VE
 
-Branche majeure suivie **9.2** ; dernière version de **pve-manager 9.2.26** vérifiée dans les dépôts lors du suivi précédent. La disponibilité stable de 9.2.27 n'est pas confirmée. **Kernel Proxmox : dernière version disponible non vérifiée** ; ne pas confondre avec pve-manager. Contrôler séparément `pveversion -v`, `uname -r`, les paquets kernel installés et les avis PSA, puis qualifier les régressions stockage/réseau/QEMU et sauvegardes avant déploiement. Aucun nouvel avis PSA ou correctif de régression n'a été confirmé ce dimanche.
+Proxmox VE 9.2 est la famille suivie. **pve-manager 9.2.26** est une référence du suivi officiel antérieur, non revalidée aujourd'hui comme dernière version. Le dernier **kernel pve** et les correctifs PSA/régressions ne sont pas confirmés : ne pas déduire la version du kernel de celle de pve-manager. Sur chaque nœud, comparer `pveversion -v`, `uname -r`, `apt policy pve-manager` et les versions des paquets kernel ; qualifier sauvegardes, stockage et réseau avant mise à jour. Source : https://pve.proxmox.com/wiki/Package_Repositories
 
-Sources : https://pve.proxmox.com/wiki/Package_Repositories ; https://forum.proxmox.com/forums/announcements.7/
+## OpenSSH, Nginx, MariaDB
 
-## Nginx et MariaDB
+**OpenSSH :** CVE-2026-123158 suivie dans les avis CERT-FR précédents, contournement d'authentification sous configurations Linux musl sans PAM ; version corrective upstream rapportée 10.6p2. L'avis primaire et le CVSS n'ont pas été revalidés aujourd'hui. Sur Rocky/RHEL, examiner les errata et backports plutôt que le seul numéro upstream. Source : https://www.openssh.com/security.html
 
-**Nginx :** l'éditeur liste six CVE de gravité **medium** : CVE-2026-15176, CVE-2026-93479, CVE-2026-95101, CVE-2026-97629, CVE-2026-97205, CVE-2026-90439. Les cinq premières sont corrigées dans les branches 1.30.6+/1.31.7+ et la dernière dans 1.30.5+/1.31.6+. Les scores CVSS individuels n'ont pas été établis ici ; vérifier les backports RPM et les fonctionnalités activées (HTTP/3, AIO, tickets TLS, scripts).
+**Nginx :** l'éditeur documente CVE-2026-15176, CVE-2026-93479, CVE-2026-95101, CVE-2026-97629 et deux autres CVE suivies dans les précédents rapports, toutes classées « medium » par l'éditeur. Pour les quatre CVE nommées, branches non vulnérables 1.30.6+ / 1.31.7+ selon le bulletin ; vérifier les backports des paquets Rocky. Aucun score CVSS individuel n'a été vérifié. Source : https://nginx.org/en/security_advisories.html
 
-Source : https://nginx.org/en/security_advisories.html
+**MariaDB :** Fondation MariaDB : 10.11.19 LTS (21 août 2026), 11.4.13 LTS, 11.8.9 LTS et 12.3.3 LTS. Aucun nouvel avis de sécurité critique ou important confirmé aujourd'hui. Contrôler les correctifs de la branche réellement installée et les sauvegardes avant montée de version. Source : https://mariadb.org/
 
-**MariaDB :** la référence de suivi antérieure est **10.11.19 LTS** ; aucune nouvelle version ou CVE importante vérifiée dans cette collecte. Contrôler les notes de sécurité de chaque branche maintenue, les errata de distribution et l'état de support de la version réellement installée.
+## Méthode, compteurs et limites
 
-Source : https://mariadb.org/ ; https://mariadb.com/kb/en/security/
-
-## Méthode, gravité et limites
-
-Compteurs du jour : **CVE distinctes nouvellement confirmées et scorées dans cette collecte**, et non l'inventaire des vulnérabilités historiques. Critique : CVSS >= 9.0 ; importante : 7.0 <= CVSS < 9.0 ; dédoublonnage par identifiant CVE entre produits. **0 critique / 0 importante nouvelle** ce dimanche : les CVE-2026-105437 et CVE-2026-123158 étaient déjà connues des briefs précédents ; le score de la seconde n'a pas été retenu faute de validation primaire univoque. Les six CVE Nginx ne sont pas comptées sans score CVSS individuel vérifié. Un zéro ne signifie pas absence de risque. Sources officielles prioritaires ; aucune instruction offensive.
+Périmètre des compteurs : **CVE distinctes nouvellement vérifiées et scorées dans la collecte du 16 novembre**, pas le stock historique des CVE ouvertes. Critique : CVSS >= 9.0 ; importante : 7.0 <= CVSS < 9.0 ; dédoublonnage global par identifiant CVE entre produits. **0 critique / 0 importante nouvelle** aujourd'hui : CVE-2026-105437 était déjà recensée et les autres CVE n'ont pas de score primaire nouveau validé. Les zéros n'impliquent aucune absence de vulnérabilités. Statut warning en raison des correctifs antérieurs encore à vérifier sur le parc et des données non reconfirmées. Les versions non établies sont signalées explicitement ; aucune instruction offensive.
