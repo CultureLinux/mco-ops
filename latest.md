@@ -1,67 +1,63 @@
 ---
 type: mco-daily
-date: 2026-11-19
-generated_at: 2026-11-19T07:58:10+01:00
+date: 2026-11-20
+generated_at: 2026-11-20T08:00:55+01:00
 timezone: Europe/Paris
 status: critical
 critical_cve: 0
 important_cve: 0
-rocky_kernel_latest: "5.14.0-741.22.1.el9_9"
+rocky_kernel_latest: "5.14.0-741.22.1.el9_9.0.1"
 proxmox_major: "9.2"
 proxmox_pve_manager_latest: ""
 ---
 
-# Brief MCO défensif — 19 novembre 2026
+# Brief MCO défensif — 20 novembre 2026
 
 ## Résumé exécutif
+**P0 Nginx :** correctifs 1.30.7 / 1.31.9 contre dix vulnérabilités publiées le 18 novembre, notamment HTTP/2, TLS 1.3 et proxy mail. **Nouveau point Rocky :** le dépôt *security* contient un kernel `5.14.0-741.22.1.el9_9.0.1` du 18 novembre, plus récent que le paquet BaseOS. **GitLab 19.6** annoncé le 19 novembre ; conserver la priorité sur les correctifs de sécurité GitLab du 16 novembre.
 
-**P0 — Nouvelle publication de sécurité Nginx du 18 novembre : dix CVE corrigées dans 1.30.7 (stable) et 1.31.9 (mainline).** Risques importants de corruption mémoire HTTP/2, boucle infinie TLS 1.3 et contournement de vérification de certificat client SNI dans le module stream. Qualifier et corriger rapidement les reverse proxies exposés. **P0 — GitLab :** maintenir l'urgence des correctifs Self-Managed du 16 novembre, particulièrement les secrets CI/CD et Kubernetes. **Rocky Linux 9.9 :** kernel 5.14.0-741.22.1.el9_9 vérifié. Aucun nouveau score CVSS individuel suffisamment vérifié pour alimenter les compteurs aujourd'hui ; cela ne signifie pas absence de risque.
+## Rocky Linux / RHEL 9
+- BaseOS x86_64 : `kernel-5.14.0-741.22.1.el9_9` (12 novembre 2026).
+- Dépôt Rocky 9 **security** x86_64 : `kernel-5.14.0-741.22.1.el9_9.0.1` (18 novembre 2026 à 20:48 UTC), avec `kernel-core` et modules correspondants. La disponibilité effective dépend de l'activation de ce dépôt sur chaque serveur ; ne pas assimiler ce paquet au kernel disponible par défaut.
+- CVE, vecteurs et errata spécifiques à la révision `.0.1` : **non établis** ; ne pas lui attribuer des corrections précises sans bulletin.
+- Red Hat publie des errata kernel RHEL 9 (par exemple RHSA-2026:97873 du 11 novembre et RHSA-2026:99135 du 12 novembre), mais leur correspondance exacte avec la révision Rocky `.0.1` n'est pas établie.
+- Actions : `dnf repolist --enabled`, `dnf updateinfo list security`, `dnf --enablerepo=security check-update kernel\*`, `uname -r`, `rpm -q kernel-core`, espace /boot ; valider kdump/RAID et planifier le reboot.
 
-## Nginx — alerte du 18 novembre (P0)
+Sources : https://download.rockylinux.org/pub/rocky/9/security/x86_64/os/Packages/k/ ; https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/ ; https://access.redhat.com/security/cve/cve-2026-80586
 
-L'éditeur a publié nginx **1.30.7 stable** et **1.31.9 mainline** le **18 novembre 2026**. Dix CVE distinctes sont documentées :
+## Proxmox VE
+- Branche majeure suivie : **9.2**.
+- Dernière version de `pve-manager` : **non reconfirmée**, champ YAML volontairement vide (référence historique 9.2.26, pas une validation du jour).
+- Kernel Proxmox : dernière révision publiée **non vérifiée** ; distincte de `pve-manager` et du kernel Rocky. Aucune régression nouvelle vérifiée.
+- Actions : `pveversion -v`, `uname -r`, `apt list --upgradable`, contrôle du kernel booté et des sauvegardes VM avant redémarrage.
 
-| CVE | Gravité éditeur | Impact / composant | Versions vulnérables | Correctif |
-|---|---|---|---|---|
-| CVE-2026-123634 | medium | Use-after-free, resolver | 0.6.18–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-123007 | major | Corruption mémoire, contrôle de flux HTTP/2 | 1.9.5–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-121810 | medium | Use-after-free HTTP/3 | 1.25.0–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-123633 | medium | Use-after-free HTTP/2 | 1.19.7–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-118899 | major | Boucle infinie, corps de requête TLS 1.3 | 1.13.0–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-113425 | major | Use-after-free, proxy mail | 0.5.33–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-120993 | minor | Déréférencement NULL, PROXY protocol v2 | 1.31.4–1.31.8 | 1.31.9 |
-| CVE-2026-125283 | minor | Débordement mémoire, alias et try_files | 0.9.6–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-120967 | medium | Contournement SNI, validation certificat client stream | 1.25.5–1.31.8 | 1.30.7 / 1.31.9 |
-| CVE-2026-123640 | minor | Validation insuffisante, stream ssl_preread | 1.15.2–1.31.8 | 1.30.7 / 1.31.9 |
+## GitLab Self-Managed CE/EE
+- **GitLab 19.6 annoncé officiellement le 19 novembre** : évolutions d'automatisation agentique, gouvernance MCP et remédiation ; ce communiqué ne constitue pas à lui seul une Security Patch Release et ne confirme pas une CVE nouvelle.
+- Bulletin de sécurité du 16 novembre : correctifs suivis **19.5.6 / 19.4.8 / 19.3.9**. Risques déjà identifiés : CVE-2026-18241 (CVSS 8.2, accès aux variables CI/CD protégées), CVE-2026-97187 (7.6, secrets Kubernetes inter-namespace), CVE-2026-105739 (8.7, XSS Wiki), CVE-2026-108153 (8.7, XSS Error Tracking). Ces CVE ne sont **pas recomptées**.
+- Pour ces quatre CVE, vecteur réseau ; les XSS exigent authentification et interaction utilisateur ; CI/CD exige authentification sans interaction ; Kubernetes exige des privilèges élevés. Les bornes exactes de versions affectées et les métriques CVSS complètes ne sont pas revalidées ce jour : consulter le bulletin officiel avant toute qualification par instance.
+- Surveiller en outre les accès sans authentification aux snippets privés, l'exposition de secrets/tokens, les runners, les images CI/CD et les régressions post-upgrade. Aucune nouvelle RCE ou auth bypass datée du 20 novembre n'est individuellement confirmée.
+- Actions : vérifier `gitlab-rake gitlab:env:info`, version des runners, sauvegarde, puis déployer la version corrigée adaptée à la branche avec validation des migrations et pipelines.
 
-**Attention :** l'avis Nginx affiche par erreur « CVE-CVE-2026-121810 » ; l'identifiant normalisé est CVE-2026-121810. Les scores CVSS, vecteurs CVSS complets, prérequis d'authentification et interactions utilisateur ne sont pas vérifiés pour ces dix CVE : ne pas déduire ces propriétés des seules descriptions. Les impacts dépendent des modules et de la configuration effectivement activés. Pour Rocky/RHEL, vérifier les backports des paquets avant de conclure qu'un numéro de version ancien est vulnérable.
+Sources : https://about.gitlab.com/press/releases/2026-11-19-new-gitlab-agentic-automations/ ; https://about.gitlab.com/releases/
 
-**Actions défensives :** inventorier les instances Nginx publiques et internes, identifier HTTP/2, HTTP/3, TLS 1.3, stream/mTLS, proxy mail et PROXY protocol, appliquer les paquets corrigés du fournisseur, valider la configuration avec nginx -t, puis recharger après tests. Vérifier les logs et la supervision. Aucun mode opératoire offensif.
+## Nginx
+- **Dix CVE récentes** dans l'avis officiel ; versions corrigées upstream **1.30.7+ / 1.31.9+**. Parmi elles : CVE-2026-123007 (corruption mémoire HTTP/2, *major*), CVE-2026-118899 (boucle TLS 1.3, *major*), CVE-2026-113425 (use-after-free mail proxy, *major*), CVE-2026-123634 (resolver, *medium*), CVE-2026-123633 (HTTP/2, *medium*), CVE-2026-121810 (HTTP/3, *medium*).
+- Les autres vulnérabilités concernent notamment SNI/mTLS, PROXY protocol, alias/try_files et ssl_preread. Gravité éditeur ≠ score CVSS. **Scores CVSS et conditions d'exploitation détaillées non validés** ; ne pas en déduire une RCE ou exploitation sans authentification confirmée.
+- Priorité aux Nginx exposés, y compris les reverse proxies frontaux ; vérifier les modules activés et les correctifs rétroportés des distributions. `nginx -v`, `nginx -T`, `rpm -q nginx` ou `dpkg -l nginx\*`, puis `nginx -t` et reload/restart maîtrisé.
 
-Sources : [actualité officielle du 18 novembre](https://nginx.org/2026.html), [avis de sécurité Nginx](https://nginx.org/en/security_advisories.html).
+Source : https://nginx.org/en/security_advisories.html
 
-## GitLab Self-Managed CE/EE (P0 maintenu)
+## OpenSSH
+- CVE-2026-123158 précédemment suivie : contexte musl / absence de PAM signalé dans les précédents avis ; qualification exacte et score non reconfirmés ce jour. Ne pas extrapoler aux paquets OpenSSH de Rocky/RHEL sans erratum correspondant.
+- Pas de nouvel avis critique individuellement vérifié au 20 novembre. Contrôler `rpm -q openssh-server` et `dnf updateinfo`.
 
-Le bulletin de sécurité du **16 novembre 2026**, déjà suivi, annonce les correctifs **19.5.6, 19.4.8 et 19.3.9**. Quatre CVE importantes précédemment recensées : CVE-2026-105739 (CVSS 8.7, XSS Wiki), CVE-2026-108153 (8.7, XSS Error Tracking), CVE-2026-18241 (8.2, accès aux variables et ressources CI/CD protégées) et CVE-2026-97187 (7.6, secrets Kubernetes inter-namespace). Ces CVE ne sont **pas recomptées** aujourd'hui. Le bulletin du 10 novembre concernant CVE-2026-105437 (7.5, Git/Gitaly, risque d'exécution de commandes, réseau, complexité élevée, sans privilège, interaction requise) reste également à traiter si une instance est antérieure aux correctifs.
+## MariaDB
+- Branche 10.11 LTS suivie ; référence historique 10.11.19, **non reconfirmée comme dernière version**.
+- Aucune nouvelle CVE importante datée du jour vérifiée ; vérifier les avis éditeur, le dépôt installé et les versions corrigées plutôt que d'inférer une absence de risque.
+- Contrôler `mariadb --version`, `dnf updateinfo`, sauvegardes et réplication avant maintenance.
 
-Pour les XSS, authentification et interaction utilisateur sont nécessaires selon les qualifications précédemment établies ; pour l'accès CI/CD, authentification requise et pas d'interaction ; pour Kubernetes, privilèges élevés. Les plages exactes d'introduction de chaque CVE et une éventuelle publication supplémentaire du 19 novembre n'ont pas été revalidées dans cette collecte : ne pas extrapoler. Vérifier les versions Omnibus, contrôler les variables CI/CD, les tokens, les intégrations Kubernetes et GitLab Runner ; appliquer les correctifs appropriés après sauvegarde et validation. Surveiller particulièrement les attaques sans authentification, fuites de secrets et contournements d'autorisation. Sources : [GitLab releases](https://about.gitlab.com/releases/), [GitLab security](https://about.gitlab.com/security/).
-
-## Rocky Linux / RHEL 9 (P1)
-
-Le dépôt officiel Rocky Linux 9 BaseOS x86_64 présente **kernel 5.14.0-741.22.1.el9_9**, daté du **12 novembre 2026**. Red Hat indique que RHEL 9.9 a été publié le **10 novembre 2026** avec kernel initial 5.14.0-741.14.1.el9_9 (RHBA-2026:97422). Ne pas confondre ce kernel de sortie avec le paquet Rocky plus récent. Les correspondances exhaustives RHSA/RLSA/CVE de la révision 741.22.1 ne sont pas vérifiées ici. Contrôler dnf updateinfo, les mises à jour proposées, /boot, les kernels installés et uname -r, puis qualifier les redémarrages. Sources : [dépôt Rocky BaseOS](https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/), [dates de publication RHEL](https://access.redhat.com/articles/red-hat-enterprise-linux-release-dates).
-
-## Proxmox VE (P1)
-
-**Proxmox VE 9.2** est confirmé officiellement ; la série utilise **Linux 7.0** comme kernel stable par défaut. La dernière version du paquet **pve-manager** n'a pas été vérifiée aujourd'hui : champ YAML vide. Les références antérieures 9.2.26 (pve-manager) et 7.0.14-28-pve (kernel observé sur le parc) ne doivent pas être présentées comme les dernières versions publiées. Aucune nouvelle régression spécifique n'est confirmée. Sur les nœuds, comparer pveversion -v, apt policy pve-manager, les paquets proxmox-kernel installés et uname -r ; contrôler les changements de kernel et les alertes kdump avant reboot. Source : [Proxmox VE 9.2 officiel](https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2).
-
-## OpenSSH (P2)
-
-Suivi de CVE-2026-123158 signalée dans les briefs antérieurs : conditions spécifiques d'exposition à confirmer selon les builds et les configurations. Aucun nouvel avis daté du 19 novembre ni score CVSS confirmé pendant cette collecte. Vérifier les correctifs rétroportés Rocky/RHEL plutôt que de conclure à partir du seul numéro OpenSSH. Sources de contrôle : [OpenSSH](https://www.openssh.com/), [Red Hat CVE](https://access.redhat.com/security/security-updates/).
-
-## MariaDB (P2)
-
-La référence précédente suivie est MariaDB **10.11.19 LTS**, non reconfirmée comme toute dernière version aujourd'hui. Aucun nouvel avis de sécurité individuellement confirmé. Vérifier les branches maintenues, les errata des distributions et la compatibilité des mises à jour. Source : [MariaDB Foundation](https://mariadb.org/).
-
-## Méthodologie et limites
-
-Périmètre : nouveautés publiées ou découvertes depuis le rapport du 18 novembre, plus vulnérabilités non résolues prioritaires. **critical_cve** = nombre de CVE distinctes nouvellement qualifiées dans cette collecte avec score CVSS vérifié >= 9.0 ; **important_cve** = nombre de CVE distinctes nouvellement qualifiées avec CVSS vérifié >= 7.0 et < 9.0. Une CVE présente sur plusieurs produits ne compte qu'une fois. Une CVE déjà comptabilisée précédemment n'est pas recomptée. Les dix nouvelles CVE Nginx ont une gravité *éditeur* vérifiée mais **pas de score CVSS individuel vérifié** dans cette collecte : elles ne sont donc pas artificiellement classées dans les compteurs (0/0). **0/0 ne signifie ni absence de vulnérabilité ni absence de CVE nouvelles.** Statut **critical** en raison des nouvelles vulnérabilités Nginx exposées et de l'urgence GitLab persistante, indépendamment des compteurs. Les données non vérifiées restent signalées comme telles.
+## Méthode et limites
+- Fenêtre : informations nouvelles ou encore opérationnellement pertinentes au 20 novembre 2026, sources officielles en priorité.
+- **Comptage** : identifiants CVE distincts nouvellement confirmés **avec score CVSS vérifié pendant cette collecte**, critique CVSS >= 9.0, importante 7.0 <= CVSS < 9.0 ; une CVE touchant plusieurs produits compte une seule fois. Les CVE déjà recensées et les CVE sans score confirmé ne sont pas ajoutées. `critical_cve: 0` et `important_cve: 0` **ne signifient pas zéro vulnérabilité**.
+- `status: critical` reflète l'urgence opérationnelle persistante des vulnérabilités Nginx et GitLab, non l'existence d'une nouvelle CVE CVSS >= 9.
+- Absences de vérification : dernier pve-manager, dernier kernel Proxmox, correspondance RHSA/kernel Rocky security, scores CVSS des dix avis Nginx, nouvelles CVE OpenSSH/MariaDB.
